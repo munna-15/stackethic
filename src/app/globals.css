@@ -1,26 +1,665 @@
+
 @import "tailwindcss";
 
+/* ==========================================================================
+   StackEthic — Global Design System
+   Warm editorial foundation + reference-inspired visual tokens
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   01. Brand Tokens
+   -------------------------------------------------------------------------- */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Core palette */
+  --ivory: #f7f7f0;
+  --ivory-soft: #fbfbf6;
+  --olive: #252b0b;
+  --olive-deep: #1c2108;
+  --olive-light: #343b18;
+
+  /* Accent palette */
+  --lime: #ddf46a;
+  --lime-soft: #e8f5a6;
+  --sage: #e5ebcb;
+  --sage-muted: #d5dcc0;
+
+  /* Neutral palette */
+  --white: #ffffff;
+  --black: #171910;
+  --muted: #858873;
+  --muted-light: #a3a58f;
+  --border: rgb(37 43 11 / 12%);
+  --border-light: rgb(247 247 240 / 16%);
+
+  /* Legacy compatibility */
+  --graphite: var(--olive);
+  --off-white: var(--ivory);
+  --surface: var(--sage);
+  --soft-grey: var(--sage);
+  --grey: var(--muted);
+  --accent: var(--lime);
+  --background: var(--ivory);
+  --foreground: var(--olive);
+  --accent-foreground: var(--olive);
+  --ring: var(--muted);
+
+  /* Typography */
+  --font-display-family: var(--font-heading), sans-serif;
+  --font-body-family: var(--font-sans-next), sans-serif;
+
+  /* Layout */
+  --container-width: 1440px;
+  --page-gutter: clamp(20px, 5vw, 80px);
+
+  /* Spacing */
+  --section-space: clamp(80px, 10vw, 144px);
+  --section-space-small: clamp(56px, 7vw, 96px);
+
+  /* Radius */
+  --radius-small: 8px;
+  --radius-medium: 16px;
+  --radius-large: 24px;
+  --radius-panel: 32px;
+  --radius-pill: 9999px;
+
+  /* Motion */
+  --ease-editorial: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+
+  --duration-fast: 200ms;
+  --duration-normal: 400ms;
+  --duration-slow: 800ms;
+
+  color-scheme: light;
 }
+
+/* --------------------------------------------------------------------------
+   02. Tailwind CSS 4 Theme
+   -------------------------------------------------------------------------- */
 
 @theme inline {
+  /* Existing brand colors */
+  --color-ivory: var(--ivory);
+  --color-ivory-soft: var(--ivory-soft);
+  --color-olive: var(--olive);
+  --color-olive-deep: var(--olive-deep);
+  --color-olive-light: var(--olive-light);
+
+  --color-lime: var(--lime);
+  --color-lime-soft: var(--lime-soft);
+  --color-sage: var(--sage);
+  --color-sage-muted: var(--sage-muted);
+
+  /* Neutral colors */
+  --color-white: var(--white);
+  --color-black: var(--black);
+  --color-muted: var(--muted);
+  --color-muted-light: var(--muted-light);
+  --color-border: var(--border);
+  --color-border-light: var(--border-light);
+
+  /* Existing project compatibility */
+  --color-graphite: var(--graphite);
+  --color-off-white: var(--off-white);
+  --color-surface: var(--surface);
+  --color-soft-grey: var(--soft-grey);
+  --color-grey: var(--grey);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-ring: var(--ring);
+
+  /* Reference video colors — isolated namespace */
+  --color-se-olive: #2d3300;
+  --color-se-lime: #e0f460;
+  --color-se-paper: #fdfdfd;
+  --color-se-sky: #d6e5eb;
+  --color-se-lavender: #dde4fc;
+
+  /* Typography */
+  --font-sans: var(--font-body-family);
+  --font-display: var(--font-display-family);
+
+  --font-se-sans: var(--font-sans-next), ui-sans-serif, system-ui, sans-serif;
+  --font-se-display: var(--font-sans-next), var(--font-heading), ui-sans-serif, system-ui, sans-serif;
+
+  /* Radius */
+  --radius-xs: 4px;
+  --radius-sm: var(--radius-small);
+  --radius-md: var(--radius-medium);
+  --radius-lg: var(--radius-large);
+  --radius-panel: 32px;
+  --radius-full: var(--radius-pill);
+
+  /* Motion */
+  --ease-se: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* --------------------------------------------------------------------------
+   03. Base Reset
+   -------------------------------------------------------------------------- */
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-padding-top: 100px;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    margin: 0;
+    overflow-x: clip;
+
+    background-color: var(--background);
+    color: var(--foreground);
+
+    font-family: var(--font-body-family);
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.6;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin: 0;
+    font-family: var(--font-display-family);
+    font-weight: 500;
+    line-height: 1.08;
+    letter-spacing: -0.045em;
+    text-wrap: balance;
+  }
+
+  h1 {
+    letter-spacing: -0.055em;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  img,
+  picture,
+  video,
+  canvas,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+
+  img,
+  video {
+    height: auto;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  input,
+  textarea {
+    color: inherit;
+  }
+
+  ul,
+  ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  ::selection {
+    background: var(--lime);
+    color: var(--olive);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--olive);
+    outline-offset: 4px;
+  }
+
+  [data-theme="dark"] :focus-visible {
+    outline-color: var(--lime);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* --------------------------------------------------------------------------
+   04. Reusable Layout Utilities
+   -------------------------------------------------------------------------- */
+
+@layer utilities {
+  .page-container {
+    width: 100%;
+    max-width: var(--container-width);
+    margin-inline: auto;
+    padding-inline: var(--page-gutter);
+  }
+
+  .section-padding {
+    padding-block: var(--section-space);
+  }
+
+  .section-padding-small {
+    padding-block: var(--section-space-small);
+  }
+
+  .font-display {
+    font-family: var(--font-display-family);
+  }
+
+  .font-body {
+    font-family: var(--font-body-family);
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  .tracking-editorial {
+    letter-spacing: -0.045em;
+  }
+
+  .surface-ivory {
+    background-color: var(--ivory);
+    color: var(--olive);
+  }
+
+  .surface-olive {
+    background-color: var(--olive);
+    color: var(--ivory);
+  }
+
+  .surface-lime {
+    background-color: var(--lime);
+    color: var(--olive);
+  }
+
+  .surface-sage {
+    background-color: var(--sage);
+    color: var(--olive);
+  }
+
+  .capsule {
+    border-radius: var(--radius-pill);
+  }
+
+  .editorial-transition {
+    transition:
+      color var(--duration-normal) var(--ease-editorial),
+      background-color var(--duration-normal) var(--ease-editorial),
+      border-color var(--duration-normal) var(--ease-editorial),
+      transform var(--duration-normal) var(--ease-editorial);
+  }
+
+  /* StackEthic reference-specific utilities */
+
+  .se-heading {
+    font-family: var(--font-se-display);
+    letter-spacing: -0.035em;
+    line-height: 0.98;
+    font-weight: 500;
+  }
+
+  .se-word {
+    display: inline-block;
+    will-change: transform, opacity, filter;
+  }
+
+  .se-glass {
+    background: rgb(18 18 14 / 38%);
+    backdrop-filter: blur(14px) saturate(1.2);
+    -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   05. Image & Visual Behavior
+   -------------------------------------------------------------------------- */
+
+img {
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.image-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-center {
+  object-position: center;
+}
+
+/* --------------------------------------------------------------------------
+   06. Scrollbar
+   -------------------------------------------------------------------------- */
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--muted) var(--ivory);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--ivory);
+}
+
+::-webkit-scrollbar-thumb {
+  border: 2px solid var(--ivory);
+  border-radius: var(--radius-pill);
+  background: var(--muted);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--olive);
+}
+
+/* --------------------------------------------------------------------------
+   07. Dark Surface Support
+   -------------------------------------------------------------------------- */
+
+[data-theme="dark"] {
+  --background: var(--olive);
+  --foreground: var(--ivory);
+  --muted: var(--sage);
+  --border: var(--border-light);
+  --ring: var(--lime);
+
+  color-scheme: dark;
+
+  background-color: var(--olive);
+  color: var(--ivory);
+}
+
+/* --------------------------------------------------------------------------
+   08. Reduced Motion
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .se-word {
+    will-change: auto;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   09. Responsive Foundation
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 768px) {
+  :root {
+    --section-space: 80px;
+    --section-space-small: 56px;
+  }
+
+  html {
+    scroll-padding-top: 76px;
+  }
+
+  body {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --section-space: 64px;
+    --section-space-small: 48px;
+    --page-gutter: 20px;
+  }
+}
+
+/* ==========================================================================
+   10. Section components: tokens, layout, buttons and scroll animations
+   Paste this at the very bottom of your existing globals.css
+   ========================================================================== */
+
+/* Colors used by the section components (bg-forest, bg-sky, bg-lav, text-ink) */
+@theme {
+  --color-forest: #2d3300;
+  --color-sky: #d6e5eb;
+  --color-lav: #dde4fc;
+  --color-ink: #252b0b;
+  --animate-fade: fade 0.4s ease both;
+}
+
+/* Heading size lives in the base layer so Tailwind classes like text-[...] can override it */
+@layer base {
+  h2 { font-size: clamp(34px, 5vw, 60px); }
+}
+
+/* Layout wrapper and buttons */
+@layer components {
+  .wrap { width: min(1180px, 100% - 40px); margin-inline: auto; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 22px; border-radius: 9999px; border: 0;
+    background: var(--color-forest); color: #fff; font-weight: 500;
+    transition: transform 0.25s;
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn-lime  { background: var(--color-lime); color: var(--color-forest); }
+  .btn-ghost { background: transparent; color: inherit; border: 1px solid var(--border); }
+  .btn-white { background: #fff; color: var(--color-forest); padding: 9px 18px; }
+}
+
+/* Scroll animations: useReveal adds the "in" class */
+.w {
+  display: inline-block; opacity: 0; filter: blur(10px); transform: translateY(14px);
+  transition: opacity 0.8s, filter 0.8s, transform 0.8s;
+  transition-delay: calc(var(--i, 0) * 70ms);
+}
+.in .w, .w.in { opacity: 1; filter: none; transform: none; }
+
+.rv { opacity: 0; transform: translateY(26px); transition: opacity 0.8s, transform 0.8s; }
+.rv.in { opacity: 1; transform: none; }
+
+.sv {
+  opacity: 0; transform: translateY(90px) scale(0.9);
+  transition: opacity 0.9s, transform 1s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition-delay: calc(var(--d, 0) * 0.18s);
+}
+.sv.in { opacity: 1; transform: none; }
+
+.bl {
+  opacity: 0; filter: blur(12px); transform: translateY(12px);
+  transition: opacity 0.9s, filter 0.9s, transform 0.9s;
+  transition-delay: calc(var(--d, 0) * 0.18s + 0.45s);
+}
+.sv.in .bl { opacity: 1; filter: none; transform: none; }
+
+/* Keyframes */
+@keyframes slide { to { transform: translateX(-50%); } }
+@keyframes fade  { from { opacity: 0; transform: translateY(-6px); } }
+
+/* Scrolling chip rows (Growth section) */
+.crow { display: flex; gap: 8px; width: max-content; animation: slide 16s linear infinite; }
+.crow.rev { animation-direction: reverse; }
+
+/* FAQ accordion: native <details> */
+details > summary { list-style: none; cursor: pointer; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary::after { content: "+"; font-size: 24px; line-height: 1; }
+details[open] > summary::after { content: "\2212"; }
+details[open] > p { animation: fade 0.4s; }
+
+/* Reduced motion: show everything without animation */
+@media (prefers-reduced-motion: reduce) {
+  .w, .rv, .sv, .bl { opacity: 1; filter: none; transform: none; }
+}
+
+
+
+/* ==========================================================================
+   11. Lenis smooth scroll
+   ========================================================================== */
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+
+
+
+
+/* Architectural custom cursor */
+
+.architectural-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform;
+  transition:
+    opacity 180ms ease,
+    visibility 180ms ease;
+}
+
+.architectural-cursor.is-visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.architectural-cursor.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.architectural-cursor__arrow {
+  width: 25px;
+  height: 30px;
+  transform: translate(-2px, -2px);
+  transition:
+    opacity 250ms ease,
+    transform 350ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.architectural-cursor__arrow svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.architectural-cursor__label {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  padding: 9px 13px;
+  background: #252b0b;
+  color: #ddf46a;
+  font-family: var(--font-sans-next), sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(5px, 7px);
+  transition:
+    opacity 250ms ease,
+    transform 350ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.architectural-cursor[data-mode="view"] .architectural-cursor__arrow {
+  opacity: 0;
+  transform: translate(-7px, -7px) scale(0.75);
+}
+
+.architectural-cursor[data-mode="view"] .architectural-cursor__label {
+  opacity: 1;
+  transform: translate(0, 0);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html.has-custom-cursor,
+  html.has-custom-cursor body,
+  html.has-custom-cursor a,
+  html.has-custom-cursor button,
+  html.has-custom-cursor [role="button"] {
+    cursor: none !important;
+  }
+
+  html.has-custom-cursor input,
+  html.has-custom-cursor textarea,
+  html.has-custom-cursor select,
+  html.has-custom-cursor [contenteditable="true"] {
+    cursor: auto !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .architectural-cursor {
+    display: none !important;
+  }
 }
