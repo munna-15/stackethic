@@ -50,7 +50,11 @@ export default function ServiceGrid() {
   useScrollReveal(ref);
 
   return (
-    <section ref={ref} className="bg-white text-[#1c220a]">
+    <section
+      ref={ref}
+      id="service-list"
+      className="scroll-mt-24 bg-white text-[#1c220a]"
+    >
       <div className="page-container pb-24 pt-20">
         <div className="mb-10 flex flex-col items-start justify-between gap-5 md:flex-row md:items-center">
           <SplitHeading
