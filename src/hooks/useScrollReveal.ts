@@ -1,86 +1,91 @@
 "use client";
 
-import type { RefObject } from "react";
-import { useGSAP } from "@gsap/react";
+import { useEffect, type RefObject } from "react";
 import { gsap } from "@/lib/gsap";
 
 export function useScrollReveal(scope: RefObject<HTMLElement | null>) {
-  useGSAP(
-    () => {
-      const root = scope.current;
-      if (!root) return;
+  useEffect(() => {
+    const root = scope.current;
 
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        return;
-      }
+    if (!root) return;
 
-      const animatedElements = new Set<Element>();
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
 
-      const splitElements = root.querySelectorAll<HTMLElement>("[data-split]");
+    const context = gsap.context(() => {}, root);
+    const animatedElements = new Set<Element>();
+    const revealTasks = new Map<Element, () => void>();
 
-      splitElements.forEach((heading) => {
-        const words = heading.querySelectorAll<HTMLElement>(".se-word");
+    const splitElements = root.querySelectorAll<HTMLElement>("[data-split]");
 
-        if (!words.length) return;
+    splitElements.forEach((heading) => {
+      const words = heading.querySelectorAll<HTMLElement>(".se-word");
 
-        animatedElements.add(heading);
-        words.forEach((word) => animatedElements.add(word));
+      if (!words.length) return;
 
-        gsap.fromTo(
-          words,
-          { opacity: 0.15, y: 14 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-            stagger: 0.06,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: heading,
-              start: "top 82%",
-              once: true,
-            },
-          },
-        );
+      animatedElements.add(heading);
+      words.forEach((word) => animatedElements.add(word));
+
+      context.add(() => {
+        gsap.set(words, {
+          opacity: 0.15,
+          y: 14,
+        });
       });
 
-      const cardElements = root.querySelectorAll<HTMLElement>("[data-card]");
+      revealTasks.set(heading, () => {
+        gsap.to(words, {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          stagger: 0.06,
+          ease: "power3.out",
+        });
+      });
+    });
 
-      cardElements.forEach((card, index) => {
-        if (animatedElements.has(card)) return;
+    const cardElements = root.querySelectorAll<HTMLElement>("[data-card]");
 
-        animatedElements.add(card);
+    cardElements.forEach((card, index) => {
+      if (animatedElements.has(card)) return;
 
-        const items = Array.from(
-          card.querySelectorAll<HTMLElement>("[data-item]"),
-        ).filter((item) => !animatedElements.has(item));
+      animatedElements.add(card);
 
-        items.forEach((item) => animatedElements.add(item));
+      const items = Array.from(
+        card.querySelectorAll<HTMLElement>("[data-item]"),
+      ).filter((item) => !animatedElements.has(item));
 
-        const timeline = gsap.timeline({
-          scrollTrigger: {
-            trigger: card,
-            start: "top 85%",
-            once: true,
-          },
+      items.forEach((item) => animatedElements.add(item));
+
+      context.add(() => {
+        gsap.set(card, {
+          y: 40,
+          opacity: 0,
         });
 
-        timeline.fromTo(
-          card,
-          { y: 40, opacity: 0 },
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.8,
-            ease: "power3.out",
-            delay: (index % 3) * 0.12,
-          },
-        );
+        if (items.length) {
+          gsap.set(items, {
+            y: 20,
+            opacity: 0,
+          });
+        }
+      });
+
+      revealTasks.set(card, () => {
+        const timeline = gsap.timeline();
+
+        timeline.to(card, {
+          y: 0,
+          opacity: 1,
+          duration: 0.8,
+          ease: "power3.out",
+          delay: (index % 3) * 0.12,
+        });
 
         if (items.length) {
-          timeline.fromTo(
+          timeline.to(
             items,
-            { y: 20, opacity: 0 },
             {
               y: 0,
               opacity: 1,
@@ -92,34 +97,58 @@ export function useScrollReveal(scope: RefObject<HTMLElement | null>) {
           );
         }
       });
+    });
 
-      const fadeElements = root.querySelectorAll<HTMLElement>("[data-fade]");
+    const fadeElements = root.querySelectorAll<HTMLElement>("[data-fade]");
 
-      fadeElements.forEach((element) => {
-        if (animatedElements.has(element)) return;
+    fadeElements.forEach((element) => {
+      if (animatedElements.has(element)) return;
 
-        animatedElements.add(element);
+      animatedElements.add(element);
 
-        gsap.fromTo(
-          element,
-          { y: 20, opacity: 0 },
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.7,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: element,
-              start: "top 88%",
-              once: true,
-            },
-          },
-        );
+      context.add(() => {
+        gsap.set(element, {
+          y: 20,
+          opacity: 0,
+        });
       });
-    },
-    {
-      scope,
-      dependencies: [],
-    },
-  );
+
+      revealTasks.set(element, () => {
+        gsap.to(element, {
+          y: 0,
+          opacity: 1,
+          duration: 0.7,
+          ease: "power3.out",
+        });
+      });
+    });
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+
+          const reveal = revealTasks.get(entry.target);
+
+          if (!reveal) return;
+
+          context.add(reveal);
+          observer.unobserve(entry.target);
+        });
+      },
+      {
+        threshold: 0.1,
+        rootMargin: "0px 0px -8% 0px",
+      },
+    );
+
+    revealTasks.forEach((_, element) => {
+      observer.observe(element);
+    });
+
+    return () => {
+      observer.disconnect();
+      context.revert();
+    };
+  }, [scope]);
 }

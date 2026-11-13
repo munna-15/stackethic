@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { DM_Sans, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll";
-import CustomCursor from "@/components/CustomCursor";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -132,7 +131,6 @@ export default function RootLayout({
           }}
         />
         <SmoothScroll />
-        <CustomCursor/>
 
         {children}
       </body>
