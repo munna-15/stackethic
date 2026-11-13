@@ -1,0 +1,17 @@
+HTTP/1.1 200 OK
+Accept-Ranges: bytes
+Access-Control-Allow-Origin: *
+Age: 0
+Cache-Control: public, max-age=0, must-revalidate
+Content-Disposition: inline; filename="opengraph-image.png"
+Content-Length: 1378532
+Content-Type: image/png
+Date: Fri, 13 Nov 2026 18:43:57 GMT
+Etag: "6726125c7dfaaabde752a2467e1e749c"
+Last-Modified: Fri, 13 Nov 2026 18:43:56 GMT
+Server: Vercel
+Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+X-Matched-Path: /opengraph-image.png
+X-Vercel-Cache: MISS
+X-Vercel-Id: bom1::g7nqh-1794595436077-827a61420315
+
