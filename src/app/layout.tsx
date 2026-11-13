@@ -19,6 +19,7 @@ const dmSans = DM_Sans({
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "");
 
+
 export const metadata: Metadata = {
   metadataBase: siteUrl ? new URL(siteUrl) : undefined,
 
@@ -62,9 +63,18 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     siteName: "StackEthic",
+    url: "/",
     title: "StackEthic — Digital Engineering Studio",
     description:
       "Thoughtful websites, custom software, AI-powered automation and reliable cloud solutions for businesses worldwide.",
+    images: [
+      {
+        url: "/opengraph-image.png",
+        width: 1200,
+        height: 630,
+        alt: "StackEthic — Digital Engineering Studio",
+      },
+    ],
   },
 
   twitter: {
@@ -72,8 +82,10 @@ export const metadata: Metadata = {
     title: "StackEthic — Digital Engineering Studio",
     description:
       "Thoughtful websites, custom software, AI-powered automation and reliable cloud solutions for businesses worldwide.",
+    images: ["/opengraph-image.png"],
   },
 };
+
 
 const structuredData = {
   "@context": "https://schema.org",
