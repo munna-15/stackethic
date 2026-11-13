@@ -12,6 +12,7 @@ import Testimonial from "@/components/sections/Testimonial";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "");
 
+
 export const metadata: Metadata = {
   title: "Digital Engineering Studio",
   description:
@@ -35,12 +36,21 @@ export const metadata: Metadata = {
     description:
       "We design and engineer high-performance websites, custom software, and AI-powered solutions for ambitious businesses.",
     url: siteUrl || undefined,
+    images: [
+      {
+        url: "/opengraph-image.png",
+        width: 1200,
+        height: 630,
+        alt: "StackEthic — Digital Engineering Studio",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "StackEthic | Digital Engineering Studio",
     description:
       "Digital engineering, custom software, web development, and AI automation for businesses worldwide.",
+    images: ["/opengraph-image.png"],
   },
   alternates: siteUrl
     ? {
@@ -52,6 +62,7 @@ export const metadata: Metadata = {
     follow: true,
   },
 };
+
 
 const homeStructuredData = {
   "@context": "https://schema.org",
