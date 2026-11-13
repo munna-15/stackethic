@@ -663,3 +663,59 @@ html.lenis body {
     display: none !important;
   }
 }
+
+
+
+/* Floating WhatsApp */
+
+.whatsapp-float {
+  animation: whatsapp-entrance 800ms
+    cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.whatsapp-tooltip {
+  opacity: 0;
+  transform: translateX(8px);
+  transition:
+    opacity 250ms ease,
+    transform 350ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.whatsapp-float:hover .whatsapp-tooltip,
+.whatsapp-float:focus-visible .whatsapp-tooltip {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+@keyframes whatsapp-entrance {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .whatsapp-float {
+    bottom: 20px;
+    right: 18px;
+  }
+
+  .whatsapp-tooltip {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .whatsapp-float {
+    animation: none;
+  }
+
+  .whatsapp-tooltip {
+    transition: none;
+  }
+}

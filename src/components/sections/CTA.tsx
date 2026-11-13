@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { useReveal } from "@/hooks/useReveal";
-import SplitText from "../SplitText";
+import SplitText from "../ui/SplitText";
 
 const experts = [
   {
