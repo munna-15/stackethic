@@ -13,6 +13,7 @@ import Testimonial from "@/components/sections/Testimonial";
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "");
 
 
+
 export const metadata: Metadata = {
   title: "Digital Engineering Studio",
   description:
@@ -35,7 +36,7 @@ export const metadata: Metadata = {
     title: "StackEthic | Digital Engineering Studio",
     description:
       "We design and engineer high-performance websites, custom software, and AI-powered solutions for ambitious businesses.",
-    url: siteUrl || undefined,
+    url: siteUrl ? `${siteUrl}/` : "https://stackethic.vercel.app/",
     images: [
       {
         url: "/opengraph-image.png",
@@ -52,16 +53,15 @@ export const metadata: Metadata = {
       "Digital engineering, custom software, web development, and AI automation for businesses worldwide.",
     images: ["/opengraph-image.png"],
   },
-  alternates: siteUrl
-    ? {
-        canonical: siteUrl,
-      }
-    : undefined,
+  alternates: {
+    canonical: siteUrl ? `${siteUrl}/` : "https://stackethic.vercel.app/",
+  },
   robots: {
     index: true,
     follow: true,
   },
 };
+
 
 
 const homeStructuredData = {
