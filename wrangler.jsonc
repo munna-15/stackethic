@@ -14,4 +14,8 @@
       "service": "stackethic",
     },
   ],
+  "vars": {
+    "CONTACT_TO_EMAIL": "hello@stackethic.com",
+    "CONTACT_FROM_EMAIL": "StackEthic <website@stackethic.com>",
+  },
 }
