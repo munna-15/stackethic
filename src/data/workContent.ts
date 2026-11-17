@@ -1,10 +1,10 @@
-// Work page content. Only facts from the portfolio brief are used here.
+/* Work page content. Only facts from the portfolio brief are used here. */
 
 export const workHero = {
   eyebrow: "Our work",
   title: "Selected work.",
   text: "From premium digital experiences to practical software platforms.",
-  image: "/images/work-hero-01.jpg", // e.g. "/images/work-hero.jpg"
+  image: "/images/work-hero-01.jpg",
   imageAlt: "Selected StackEthic projects",
   stats: [
     { value: "7", label: "Selected projects" },
@@ -20,28 +20,28 @@ export const filters = [
   "Real Estate",
   "SaaS",
 ] as const;
+
 export type Group = Exclude<(typeof filters)[number], "All">;
 
 export type Project = {
   no: string;
   slug: string;
   title: string;
-  group: Group; // used by the filter buttons
-  category: string; // label shown on the card
+  group: Group;
+  category: string;
   kind: "website" | "software";
   description: string;
   focus: string[];
   url: string;
-  image?: string; // screenshot at /public/images/work/<slug>.png (1440x900 is ideal)
-  gradient: string; // shown until the screenshot exists
-  // Optional extra details for the case study page. Sections only appear when filled in.
+  image?: string;
+  gradient: string;
   details?: {
     role?: string;
     year?: string;
     stack?: string[];
     challenge?: string;
     solution?: string;
-    gallery?: string[]; // extra screenshots, e.g. "/images/work/maison-verane-2.png"
+    gallery?: string[];
   };
 };
 
@@ -64,11 +64,12 @@ const raw: Omit<Project, "no">[] = [
     image: "/images/work/maison-verane.png",
     gradient: "bg-[linear-gradient(135deg,#d9c3b0,#6b4a3a)]",
   },
+
   {
     slug: "averon",
     title: "AVÉRON",
     group: "E-commerce",
-    category: "Men’s Luxury Fashion E-commerce",
+    category: "Luxury Fashion E-commerce",
     kind: "website",
     description:
       "A contemporary menswear e-commerce concept with a premium brand identity, curated collections and a refined shopping experience.",
@@ -82,6 +83,7 @@ const raw: Omit<Project, "no">[] = [
     image: "/images/work/averon.png",
     gradient: "bg-[linear-gradient(135deg,#4a4a48,#14140f)]",
   },
+
   {
     slug: "ocaso-skyscape",
     title: "OCASO Skyscape",
@@ -100,6 +102,7 @@ const raw: Omit<Project, "no">[] = [
     image: "/images/work/ocaso.png",
     gradient: "bg-[linear-gradient(135deg,#d9783a,#2a1208)]",
   },
+
   {
     slug: "sm-builders",
     title: "SM Builders",
@@ -118,24 +121,39 @@ const raw: Omit<Project, "no">[] = [
     image: "/images/work/sm-builders.png",
     gradient: "bg-[linear-gradient(135deg,#5b6aa8,#1a1f3a)]",
   },
+
   {
     slug: "z-core",
     title: "Z-Core",
     group: "SaaS",
-    category: "SaaS / Software Platform",
+    category: "SaaS / AI-Powered Software Platform",
     kind: "software",
     description:
-      "A software platform project demonstrating backend-oriented engineering and application infrastructure.",
+      "A modern digital platform combining an engaging web experience, an intuitive management dashboard and AI-powered intelligence in one connected software ecosystem.",
     focus: [
-      "Software architecture",
-      "Application infrastructure",
-      "Backend integration",
-      "Platform development",
+      "Website experience",
+      "Management dashboard",
+      "AI intelligence",
+      "Full-stack development",
     ],
     url: "https://z-core.vercel.app",
     image: "/images/work/z-core.png",
     gradient: "bg-[linear-gradient(135deg,#2f8f8f,#12263a)]",
+
+    details: {
+      role: "Product design and full-stack development",
+      stack: ["Next.js", "React", "TypeScript", "Tailwind CSS"],
+      challenge:
+        "Creating a connected digital experience requires more than a website. Users also need an intuitive dashboard and intelligent tools within the same software ecosystem.",
+      solution:
+        "Z-Core brings together a public-facing website, a structured management dashboard and an AI intelligence interface to create a unified digital product experience.",
+      gallery: [
+        "/images/work/z-core-dashboard.png",
+        "/images/work/z-core-ai-intelligence.png",
+      ],
+    },
   },
+
   {
     slug: "restaurant-os",
     title: "RestaurantOS",
@@ -154,6 +172,7 @@ const raw: Omit<Project, "no">[] = [
     image: "/images/work/restaurantos.png",
     gradient: "bg-[linear-gradient(135deg,#6c8a3a,#1d2a10)]",
   },
+
   {
     slug: "leadflow",
     title: "LeadFlow",
@@ -181,15 +200,18 @@ export const projects: Project[] = raw.map((p, i) => ({
 
 // The spotlight project. The rest are listed in the grid below it.
 export const featuredSlug = "maison-verane";
+
 export const featured = projects.find((p) => p.slug === featuredSlug)!;
+
 export const gridProjects = projects.filter((p) => p.slug !== featuredSlug);
 
 export const getProject = (slug: string) =>
   projects.find((p) => p.slug === slug);
 
-/** Previous and next project, wrapping around at both ends */
+/** Previous and next project, wrapping around at both ends. */
 export function getAdjacent(slug: string) {
   const i = projects.findIndex((p) => p.slug === slug);
+
   return {
     prev: projects[(i - 1 + projects.length) % projects.length],
     next: projects[(i + 1) % projects.length],
