@@ -122,7 +122,7 @@ export const footer = {
     { label: "Contact", href: "/contact" },
   ],
   phone: "+880 1792 960610",
-  email: "",
+  email: "hello@stackethic.com",
   location: "Dhaka, Bangladesh",
   languages: ["En", "Bn"],
 };
