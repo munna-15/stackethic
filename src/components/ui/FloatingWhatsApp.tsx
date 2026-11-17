@@ -1,60 +1,143 @@
 "use client";
 
 import { useState } from "react";
-import { X } from "lucide-react";
+import { X, MessageCircle, Phone, ArrowUpRight, Headset } from "lucide-react";
 
 const phoneNumber = "8801792960610";
 const message = "Hi StackEthic, I'd like to discuss a project.";
 
 export default function FloatingWhatsApp() {
-  const [isPopupVisible, setIsPopupVisible] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
 
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+  const callUrl = `tel:+${phoneNumber}`;
+
+  const cardStyle =
+    "absolute right-0 flex w-[220px] items-center gap-3 rounded-[20px] border border-white/70 bg-white/85 p-3 text-[#252B0B] shadow-[0_12px_40px_rgba(37,43,11,0.12)] backdrop-blur-2xl transition-all duration-500 ease-[cubic-bezier(.22,1,.36,1)]";
+
+  const hiddenStyle =
+    "invisible translate-y-4 scale-95 opacity-0 pointer-events-none";
+
+  const visibleStyle = "visible translate-y-0 scale-100 opacity-100";
 
   return (
-    <div className="fixed bottom-6 right-6 z-[90] flex flex-col items-end gap-2 sm:bottom-7 sm:right-7">
-      {isPopupVisible && (
-        <div className="whatsapp-popup relative flex items-center gap-3 rounded-full border border-[#e8e9df] bg-[#F7F7F0] py-2.5 pl-4 pr-2 shadow-[0_8px_30px_rgba(37,43,11,0.10)]">
-          <p className="whitespace-nowrap text-xs font-medium text-[#252B0B]">
-            Need help? Let's talk.
-          </p>
-
-          <button
-            type="button"
-            onClick={() => setIsPopupVisible(false)}
-            aria-label="Close message"
-            className="flex size-6 shrink-0 items-center justify-center rounded-full text-[#777b68] transition-colors hover:bg-[#e9ebdf] hover:text-[#252B0B]"
-          >
-            <X size={13} strokeWidth={1.8} />
-          </button>
-        </div>
-      )}
-
-      <a
-        href={whatsappUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Chat with StackEthic on WhatsApp"
-        className="flex size-[54px] items-center justify-center rounded-full bg-[#252B0B] text-[#DDF46A] shadow-[0_8px_30px_rgba(37,43,11,0.18)] transition-all duration-300 ease-out hover:scale-105 hover:bg-[#354316] active:scale-95"
-      >
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          className="size-[25px]"
-          aria-hidden="true"
+    <div
+      className="
+        fixed right-6 bottom-[94px] z-[100]
+        flex items-center justify-center
+        sm:right-8
+        md:top-1/2 md:bottom-auto md:-translate-y-1/2
+      "
+    >
+      <div className="relative flex size-[62px] items-center justify-center">
+        {/* WhatsApp Card */}
+        <a
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          tabIndex={isOpen ? 0 : -1}
+          aria-hidden={!isOpen}
+          className={`
+            ${cardStyle}
+            bottom-[calc(100%+12px)]
+            ${isOpen ? visibleStyle : hiddenStyle}
+          `}
         >
-          <path
-            d="M20.1 3.9A11.7 11.7 0 0 0 1.7 18l-1.1 4 4.1-1.1a11.8 11.8 0 0 0 5.6 1.4h.1A11.7 11.7 0 0 0 20.1 3.9Z"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M8.8 7.3c-.2-.5-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.3s1 2.7 1.1 2.9c.2.2 2 3.2 4.9 4.3 2.4.9 2.9.7 3.4.6.5-.1 1.6-.7 1.8-1.4.2-.7.2-1.2.1-1.4-.1-.1-.3-.2-.6-.4l-1.9-.9c-.3-.1-.5-.2-.7.2-.2.3-.7.9-.9 1.1-.2.2-.3.2-.6.1-.3-.1-1.2-.4-2.2-1.3-.8-.7-1.3-1.6-1.5-1.9-.2-.3 0-.5.1-.6l.4-.5c.2-.2.3-.4.4-.6.1-.2 0-.4 0-.5l-.7-1.8Z"
-            fill="currentColor"
-          />
-        </svg>
-      </a>
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-[15px] bg-[#252B0B] text-[#DDF46A]">
+            <MessageCircle size={20} strokeWidth={1.7} />
+          </span>
+
+          <span className="min-w-0 flex-1">
+            <span className="block text-[12px] font-semibold">WhatsApp us</span>
+            <span className="mt-1 block text-[10px] text-[#858873]">
+              Let's talk about your project
+            </span>
+          </span>
+
+          <ArrowUpRight size={15} className="shrink-0 text-[#858873]" />
+        </a>
+
+        {/* Call Card */}
+        <a
+          href={callUrl}
+          tabIndex={isOpen ? 0 : -1}
+          aria-hidden={!isOpen}
+          className={`
+            ${cardStyle}
+            bottom-[calc(100%+112px)]
+            md:top-[calc(100%+12px)] md:bottom-auto
+            ${isOpen ? visibleStyle : hiddenStyle}
+          `}
+        >
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-[15px] bg-[#E5EBCB] text-[#252B0B]">
+            <Phone size={19} strokeWidth={1.7} />
+          </span>
+
+          <span className="min-w-0 flex-1">
+            <span className="block text-[12px] font-semibold">Call us</span>
+            <span className="mt-1 block text-[10px] text-[#858873]">
+              Speak directly with us
+            </span>
+          </span>
+
+          <ArrowUpRight size={15} className="shrink-0 text-[#858873]" />
+        </a>
+
+        {/* Main Toggle */}
+        <button
+          type="button"
+          onClick={() => setIsOpen((prev) => !prev)}
+          aria-label={isOpen ? "Close contact menu" : "Open contact menu"}
+          aria-expanded={isOpen}
+          className="
+            group relative z-10 flex size-[62px]
+            items-center justify-center rounded-full
+            border border-[#DDF46A]/25
+            bg-[#252B0B] text-[#DDF46A]
+            shadow-[0_10px_35px_rgba(37,43,11,0.25)]
+            transition-all duration-500
+            hover:shadow-[0_12px_40px_rgba(37,43,11,0.32)]
+            active:scale-95
+          "
+        >
+          <span className="absolute inset-[5px] rounded-full border border-white/10" />
+
+          {/* Headset */}
+          <span
+            className={`
+              absolute transition-all duration-500
+              ${
+                isOpen
+                  ? "rotate-90 scale-50 opacity-0"
+                  : "rotate-0 scale-100 opacity-100"
+              }
+            `}
+          >
+            <Headset size={24} strokeWidth={1.6} />
+          </span>
+
+          {/* Close */}
+          <span
+            className={`
+              absolute transition-all duration-500
+              ${
+                isOpen
+                  ? "rotate-0 scale-100 opacity-100"
+                  : "-rotate-90 scale-50 opacity-0"
+              }
+            `}
+          >
+            <X size={23} strokeWidth={1.6} />
+          </span>
+
+          {/* Status Indicator */}
+          {!isOpen && (
+            <span className="absolute right-[7px] top-[7px] size-[9px] rounded-full border-2 border-[#252B0B] bg-[#DDF46A]">
+              <span className="absolute inset-0 animate-ping rounded-full bg-[#DDF46A] opacity-50" />
+            </span>
+          )}
+        </button>
+      </div>
     </div>
   );
 }
