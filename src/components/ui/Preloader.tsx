@@ -30,14 +30,68 @@ export default function Preloader() {
     };
   }, [phase]);
 
-  /* Lock page scroll until the loader is gone */
+  /* Keep scrollbar visible while preventing page scroll */
   useEffect(() => {
     if (phase === "done") return;
+
     const html = document.documentElement;
-    const previous = html.style.overflow;
-    html.style.overflow = "hidden";
+    const previousOverflowY = html.style.overflowY;
+
+    // Keep the scrollbar visible to prevent layout shift
+    html.style.overflowY = "scroll";
+
+    // Preserve the current scroll position
+    const lockedScrollY = window.scrollY;
+
+    // Prevent mouse wheel and touch scrolling
+    const preventScroll = (event: Event) => {
+      event.preventDefault();
+    };
+
+    // Prevent keyboard-based scrolling
+    const preventKeyScroll = (event: KeyboardEvent) => {
+      const scrollKeys = [
+        "ArrowUp",
+        "ArrowDown",
+        "PageUp",
+        "PageDown",
+        "Home",
+        "End",
+        " ",
+      ];
+
+      const target = event.target as HTMLElement | null;
+      const tagName = target?.tagName;
+
+      if (
+        scrollKeys.includes(event.key) &&
+        !["INPUT", "TEXTAREA", "SELECT"].includes(tagName ?? "")
+      ) {
+        event.preventDefault();
+      }
+    };
+
+    // Restore position if someone drags the scrollbar manually
+    const preventManualScroll = () => {
+      if (window.scrollY !== lockedScrollY) {
+        window.scrollTo(0, lockedScrollY);
+      }
+    };
+
+    window.addEventListener("wheel", preventScroll, { passive: false });
+    window.addEventListener("touchmove", preventScroll, { passive: false });
+    window.addEventListener("keydown", preventKeyScroll);
+    window.addEventListener("scroll", preventManualScroll, {
+      passive: true,
+    });
+
     return () => {
-      html.style.overflow = previous;
+      html.style.overflowY = previousOverflowY;
+
+      window.removeEventListener("wheel", preventScroll);
+      window.removeEventListener("touchmove", preventScroll);
+      window.removeEventListener("keydown", preventKeyScroll);
+      window.removeEventListener("scroll", preventManualScroll);
     };
   }, [phase]);
 
