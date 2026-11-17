@@ -7,7 +7,7 @@ import { useGSAP } from "@gsap/react";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
-/* ---------- Neutral placeholder wordmarks (replace with real client logos) ---------- */
+// ---------- StackEthic capabilities ----------
 
 type Kind =
   | "ring"
@@ -20,41 +20,45 @@ type Kind =
   | "notch";
 
 const LOGOS: { name: string; kind: Kind; style: string }[] = [
-  { name: "Lumora", kind: "ring", style: "font-semibold tracking-[-0.04em]" },
   {
-    name: "Vantiq",
-    kind: "hex",
-    style: "font-semibold uppercase tracking-[0.12em] text-[0.78em]",
-  },
-  { name: "orbitly", kind: "dots", style: "font-medium tracking-[-0.03em]" },
-  { name: "Kestrel", kind: "tri", style: "font-bold tracking-[-0.05em]" },
-  { name: "Nimbus", kind: "wave", style: "font-medium tracking-[-0.02em]" },
-  {
-    name: "Fieldnote",
-    kind: "notch",
+    name: "Web Development",
+    kind: "ring",
     style: "font-semibold tracking-[-0.04em]",
   },
   {
-    name: "Arcadia",
-    kind: "spark",
-    style: "font-medium uppercase tracking-[0.1em] text-[0.78em]",
+    name: "Custom Software",
+    kind: "hex",
+    style: "font-semibold tracking-[-0.04em]",
   },
-  { name: "Quanta", kind: "bars", style: "font-bold tracking-[-0.05em]" },
   {
-    name: "Halcyon",
-    kind: "ring",
-    style: "font-medium lowercase tracking-[-0.03em]",
+    name: "AI Automation",
+    kind: "spark",
+    style: "font-semibold tracking-[-0.04em]",
   },
-  { name: "Trellis", kind: "hex", style: "font-semibold tracking-[-0.04em]" },
+  {
+    name: "Cloud & Server",
+    kind: "wave",
+    style: "font-semibold tracking-[-0.04em]",
+  },
+  {
+    name: "Digital Products",
+    kind: "bars",
+    style: "font-semibold tracking-[-0.04em]",
+  },
+  {
+    name: "Digital Experiences",
+    kind: "notch",
+    style: "font-semibold tracking-[-0.04em]",
+  },
 ];
 
 function Mark({ kind }: { kind: Kind }) {
   const common = {
     viewBox: "0 0 24 24",
-    "aria-hidden": true,
+    "aria-hidden": true as const,
     className: "h-[1em] w-[1em] shrink-0",
     fill: "currentColor",
-  } as const;
+  };
 
   switch (kind) {
     case "ring":
@@ -70,6 +74,7 @@ function Mark({ kind }: { kind: Kind }) {
           />
         </svg>
       );
+
     case "bars":
       return (
         <svg {...common}>
@@ -78,24 +83,28 @@ function Mark({ kind }: { kind: Kind }) {
           <rect x="17" y="2" width="4" height="19" rx="1" />
         </svg>
       );
+
     case "hex":
       return (
         <svg {...common}>
           <path d="M12 2 21 7v10l-9 5-9-5V7z" />
         </svg>
       );
+
     case "spark":
       return (
         <svg {...common}>
           <path d="M12 1c1 6 5 10 11 11-6 1-10 5-11 11-1-6-5-10-11-11C7 11 11 7 12 1z" />
         </svg>
       );
+
     case "tri":
       return (
         <svg {...common}>
           <path d="M12 3 22 21H2z" />
         </svg>
       );
+
     case "dots":
       return (
         <svg {...common}>
@@ -105,6 +114,7 @@ function Mark({ kind }: { kind: Kind }) {
           <circle cx="17" cy="17" r="4.5" />
         </svg>
       );
+
     case "wave":
       return (
         <svg {...common}>
@@ -117,6 +127,7 @@ function Mark({ kind }: { kind: Kind }) {
           />
         </svg>
       );
+
     case "notch":
       return (
         <svg {...common}>
@@ -149,7 +160,7 @@ function LogoGroup({ duplicate = false }: { duplicate?: boolean }) {
   );
 }
 
-/* ---------- Section ---------- */
+// ---------- Section ----------
 
 const EDGE_MASK =
   "[mask-image:linear-gradient(to_right,transparent,#000_12%,#000_88%,transparent)] [-webkit-mask-image:linear-gradient(to_right,transparent,#000_12%,#000_88%,transparent)]";
@@ -167,6 +178,7 @@ export default function LogoMarquee() {
         const section = sectionRef.current;
         const viewport = viewportRef.current;
         const track = trackRef.current;
+
         if (!section || !viewport || !track) return;
 
         // Entrance
@@ -179,9 +191,14 @@ export default function LogoMarquee() {
             duration: 0.8,
             ease: "power3.out",
             clearProps: "transform",
-            scrollTrigger: { trigger: section, start: "top 85%", once: true },
+            scrollTrigger: {
+              trigger: section,
+              start: "top 85%",
+              once: true,
+            },
           },
         );
+
         gsap.fromTo(
           viewport,
           { opacity: 0 },
@@ -190,11 +207,15 @@ export default function LogoMarquee() {
             duration: 1,
             delay: 0.15,
             ease: "power2.out",
-            scrollTrigger: { trigger: section, start: "top 85%", once: true },
+            scrollTrigger: {
+              trigger: section,
+              start: "top 85%",
+              once: true,
+            },
           },
         );
 
-        // Endless loop: the track holds two identical groups, so -50% is seamless
+        // Endless loop
         const loop = gsap.to(track, {
           xPercent: -50,
           duration: 50,
@@ -209,6 +230,7 @@ export default function LogoMarquee() {
           end: "bottom top",
           onToggle: (self) => (self.isActive ? loop.resume() : loop.pause()),
         });
+
         if (!st.isActive) loop.pause();
 
         // Ease to a stop on hover
@@ -219,6 +241,7 @@ export default function LogoMarquee() {
             ease: "power2.out",
             overwrite: true,
           });
+
         const resume = () =>
           gsap.to(loop, {
             timeScale: 1,
@@ -226,6 +249,7 @@ export default function LogoMarquee() {
             ease: "power2.out",
             overwrite: true,
           });
+
         viewport.addEventListener("mouseenter", slow);
         viewport.addEventListener("mouseleave", resume);
 
@@ -243,7 +267,7 @@ export default function LogoMarquee() {
   return (
     <section
       ref={sectionRef}
-      aria-label="Trusted by growing businesses"
+      aria-label="StackEthic capabilities"
       className="bg-se-paper py-14 font-se-sans sm:py-16 lg:pb-4 lg:pt-20"
     >
       <div className="px-4 sm:px-6">
@@ -251,7 +275,8 @@ export default function LogoMarquee() {
           data-marquee-pill
           className="mx-auto w-fit max-w-full rounded-full bg-se-olive/[0.06] px-4 py-2 text-center text-[12px] leading-snug text-se-olive/70 motion-safe:opacity-0 sm:text-[13px]"
         >
-          Join over 500 businesses already growing with StackEthic.
+          Thoughtful engineering. Intelligent technology. Built for what comes
+          next.
         </p>
       </div>
 
