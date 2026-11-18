@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { buildEnquiryEmail } from "@/lib/enquiryEmail";
 
-export const runtime = "edge";
+
 
 const isEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
