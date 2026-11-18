@@ -1,9 +1,7 @@
 /**
- * HTML email for new contact-form enquiries, styled to match the StackEthic site
- * (deep olive, lime, ivory). Written with tables and inline styles so it works in
- * Gmail, Outlook and Apple Mail.
- *
- * Logo: the email loads  {siteUrl}/email/logo-mark.png  (file lives in /public/email).
+ * HTML email for new contact-form enquiries.
+ * StackEthic brand: deep olive, lime and ivory.
+ * Logo: /public/email/logo-mark.png
  */
 
 export type EnquiryEmailInput = {
@@ -12,8 +10,8 @@ export type EnquiryEmailInput = {
   company: string;
   types: string[];
   message: string;
-  siteUrl: string; // e.g. https://stackethic.com
-  receivedAt: string; // already formatted, e.g. "18 Nov 2026, 3:42 pm GMT+6"
+  siteUrl: string;
+  receivedAt: string;
 };
 
 export const escapeHtml = (value: string) =>
@@ -54,7 +52,7 @@ export function buildEnquiryEmail(i: EnquiryEmailInput): string {
   const siteHost = escapeHtml(site.replace(/^https?:\/\//, ""));
 
   const words = i.name.split(/\s+/).filter(Boolean);
-  const firstName = escapeHtml(words[0] ?? "them");
+  const firstName = escapeHtml(words[0] ?? "there");
   const initials = escapeHtml(
     words
       .slice(0, 2)
@@ -63,7 +61,7 @@ export function buildEnquiryEmail(i: EnquiryEmailInput): string {
       .toUpperCase() || "?",
   );
 
-  const replyHref = `mailto:${email}?subject=${encodeURIComponent("Re: your project enquiry")}`;
+  const replyHref = `mailto:${encodeURIComponent(i.email)}?subject=${encodeURIComponent("Re: your project enquiry")}`;
   const year = new Date().getFullYear();
 
   const chips = i.types
@@ -109,10 +107,8 @@ export function buildEnquiryEmail(i: EnquiryEmailInput): string {
 
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${C.paper}" style="max-width:600px;background:${C.paper};border-radius:26px;overflow:hidden;">
 
-    <!-- Lime top line -->
     <tr><td height="5" bgcolor="${C.lime}" style="height:5px;line-height:5px;font-size:0;background:${C.lime};">&nbsp;</td></tr>
 
-    <!-- Header -->
     <tr>
       <td class="px" bgcolor="${C.olive}" style="background:${C.olive};padding:30px 36px 38px;">
 
@@ -146,7 +142,6 @@ export function buildEnquiryEmail(i: EnquiryEmailInput): string {
       </td>
     </tr>
 
-    <!-- Sender -->
     <tr>
       <td class="px" style="padding:34px 36px 0;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${C.ivory}" style="background:${C.ivory};border:1px solid ${C.border};border-radius:20px;">
@@ -168,7 +163,6 @@ export function buildEnquiryEmail(i: EnquiryEmailInput): string {
 
     ${needsBlock}
 
-    <!-- Message -->
     <tr>
       <td class="px" style="padding:30px 36px 0;">
         ${label("Message")}
@@ -183,7 +177,6 @@ export function buildEnquiryEmail(i: EnquiryEmailInput): string {
       </td>
     </tr>
 
-    <!-- Reply button -->
     <tr>
       <td class="px" style="padding:34px 36px 0;">
         <table role="presentation" cellpadding="0" cellspacing="0" border="0">
@@ -201,7 +194,6 @@ export function buildEnquiryEmail(i: EnquiryEmailInput): string {
 
     <tr><td height="40" style="height:40px;line-height:40px;font-size:0;">&nbsp;</td></tr>
 
-    <!-- Footer -->
     <tr>
       <td class="px" bgcolor="${C.deep}" style="background:${C.deep};padding:30px 36px;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
