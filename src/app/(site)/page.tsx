@@ -10,14 +10,16 @@ import LogoMarquee from "@/components/sections/LogoMarquee";
 import Services from "@/components/sections/Services";
 import Testimonial from "@/components/sections/Testimonial";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "");
-
-
+const siteUrl = (
+  process.env.NEXT_PUBLIC_SITE_URL || "https://stackethic.com"
+).replace(/\/+$/, "");
 
 export const metadata: Metadata = {
   title: "Digital Engineering Studio",
+
   description:
     "StackEthic is a digital engineering studio building high-performance websites, custom software, AI automation, and scalable digital solutions for businesses in Bangladesh and worldwide.",
+
   keywords: [
     "digital engineering studio",
     "web development company in Bangladesh",
@@ -29,14 +31,18 @@ export const metadata: Metadata = {
     "software development company Bangladesh",
     "international web development agency",
   ],
+
   openGraph: {
     type: "website",
     locale: "en_US",
     siteName: "StackEthic",
     title: "StackEthic | Digital Engineering Studio",
+
     description:
       "We design and engineer high-performance websites, custom software, and AI-powered solutions for ambitious businesses.",
-    url: siteUrl ? `${siteUrl}/` : "https://stackethic.vercel.app/",
+
+    url: `${siteUrl}/`,
+
     images: [
       {
         url: "/opengraph-image.png",
@@ -46,56 +52,69 @@ export const metadata: Metadata = {
       },
     ],
   },
+
   twitter: {
     card: "summary_large_image",
     title: "StackEthic | Digital Engineering Studio",
+
     description:
       "Digital engineering, custom software, web development, and AI automation for businesses worldwide.",
+
     images: ["/opengraph-image.png"],
   },
+
   alternates: {
-    canonical: siteUrl ? `${siteUrl}/` : "https://stackethic.vercel.app/",
+    canonical: `${siteUrl}/`,
   },
+
   robots: {
     index: true,
     follow: true,
   },
 };
 
-
-
 const homeStructuredData = {
   "@context": "https://schema.org",
+
   "@graph": [
     {
       "@type": "WebPage",
-      "@id": siteUrl ? `${siteUrl}/#webpage` : undefined,
-      url: siteUrl || undefined,
+
+      "@id": `${siteUrl}/#webpage`,
+
+      url: `${siteUrl}/`,
+
       name: "StackEthic | Digital Engineering Studio",
+
       description:
         "StackEthic is a digital engineering studio building high-performance websites, custom software, AI automation, and scalable digital solutions for businesses in Bangladesh and worldwide.",
+
       inLanguage: "en",
-      isPartOf: siteUrl
-        ? {
-            "@id": `${siteUrl}/#website`,
-          }
-        : undefined,
-      about: {
-        "@id": siteUrl ? `${siteUrl}/#organization` : undefined,
+
+      isPartOf: {
+        "@id": `${siteUrl}/#website`,
       },
+
+      about: {
+        "@id": `${siteUrl}/#organization`,
+      },
+
       mainEntity: {
-        "@id": siteUrl ? `${siteUrl}/#organization` : undefined,
+        "@id": `${siteUrl}/#organization`,
       },
     },
+
     {
       "@type": "BreadcrumbList",
-      "@id": siteUrl ? `${siteUrl}/#breadcrumb` : undefined,
+
+      "@id": `${siteUrl}/#breadcrumb`,
+
       itemListElement: [
         {
           "@type": "ListItem",
           position: 1,
           name: "Home",
-          item: siteUrl || undefined,
+          item: `${siteUrl}/`,
         },
       ],
     },

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DM_Sans, Space_Grotesk } from "next/font/google";
 import "./globals.css";
+
 import SmoothScroll from "@/components/ui/SmoothScroll";
 import Preloader from "@/components/ui/Preloader";
 import ScrollProgress from "@/components/ui/ScrollProgress";
@@ -20,7 +21,6 @@ const dmSans = DM_Sans({
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "");
-
 
 export const metadata: Metadata = {
   metadataBase: siteUrl ? new URL(siteUrl) : undefined,
@@ -88,7 +88,6 @@ export const metadata: Metadata = {
   },
 };
 
-
 const structuredData = {
   "@context": "https://schema.org",
   "@graph": [
@@ -99,8 +98,15 @@ const structuredData = {
       description:
         "StackEthic is a digital engineering studio building thoughtful websites, custom software, AI-powered automation and reliable cloud solutions.",
       url: siteUrl || undefined,
+      logo: siteUrl ? `${siteUrl}/logo.png` : undefined,
+      email: "hello@stackethic.com",
+
+      sameAs: ["https://www.facebook.com/profile.php?id=61596882952106"],
+
       telephone: "+8801792960610",
+
       areaServed: ["Bangladesh", "Worldwide"],
+
       knowsAbout: [
         "Web Development",
         "Custom Software Development",
@@ -108,13 +114,16 @@ const structuredData = {
         "Cloud Solutions",
         "Software Engineering",
       ],
+
       contactPoint: {
         "@type": "ContactPoint",
         telephone: "+8801792960610",
+        email: "hello@stackethic.com",
         contactType: "business inquiries",
         availableLanguage: ["English", "Bengali"],
       },
     },
+
     {
       "@type": "WebSite",
       "@id": siteUrl ? `${siteUrl}/#website` : undefined,
@@ -144,9 +153,10 @@ export default function RootLayout({
             __html: JSON.stringify(structuredData).replace(/</g, "\\u003c"),
           }}
         />
-        <Preloader/>
+
+        <Preloader />
         <SmoothScroll />
-        <ScrollProgress/>
+        <ScrollProgress />
 
         {children}
       </body>
