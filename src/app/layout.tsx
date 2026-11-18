@@ -22,6 +22,8 @@ const dmSans = DM_Sans({
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "");
 
+const ogImage = siteUrl ? `${siteUrl}/opengraph-image.png` : undefined;
+
 export const metadata: Metadata = {
   metadataBase: siteUrl ? new URL(siteUrl) : undefined,
 
@@ -69,14 +71,16 @@ export const metadata: Metadata = {
     title: "StackEthic — Digital Engineering Studio",
     description:
       "Thoughtful websites, custom software, AI-powered automation and reliable cloud solutions for businesses worldwide.",
-    images: [
-      {
-        url: "/opengraph-image.png",
-        width: 1200,
-        height: 630,
-        alt: "StackEthic — Digital Engineering Studio",
-      },
-    ],
+    images: ogImage
+      ? [
+          {
+            url: ogImage,
+            width: 1200,
+            height: 630,
+            alt: "StackEthic — Digital Engineering Studio",
+          },
+        ]
+      : [],
   },
 
   twitter: {
@@ -84,7 +88,7 @@ export const metadata: Metadata = {
     title: "StackEthic — Digital Engineering Studio",
     description:
       "Thoughtful websites, custom software, AI-powered automation and reliable cloud solutions for businesses worldwide.",
-    images: ["/opengraph-image.png"],
+    images: ogImage ? [ogImage] : [],
   },
 };
 
@@ -135,6 +139,33 @@ const structuredData = {
       publisher: {
         "@id": siteUrl ? `${siteUrl}/#organization` : undefined,
       },
+    },
+
+    {
+      "@type": "WebPage",
+      "@id": siteUrl ? `${siteUrl}/#webpage` : undefined,
+      url: siteUrl || undefined,
+      name: "StackEthic — Digital Engineering Studio",
+      description:
+        "StackEthic is a digital engineering studio building thoughtful websites, custom software, AI-powered automation and reliable cloud solutions for businesses worldwide.",
+
+      isPartOf: {
+        "@id": siteUrl ? `${siteUrl}/#website` : undefined,
+      },
+
+      primaryImageOfPage: ogImage
+        ? {
+            "@type": "ImageObject",
+            "@id": `${siteUrl}/#primaryimage`,
+            url: ogImage,
+            contentUrl: ogImage,
+            width: 1200,
+            height: 630,
+            caption: "StackEthic — Digital Engineering Studio",
+          }
+        : undefined,
+
+      inLanguage: "en",
     },
   ],
 };
