@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "");
+const siteUrl = (
+  process.env.NEXT_PUBLIC_SITE_URL || "https://stackethic.com"
+).replace(/\/+$/, "");
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -9,6 +11,7 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/api/"],
     },
-    ...(siteUrl ? { sitemap: `${siteUrl}/sitemap.xml` } : {}),
+
+    sitemap: `${siteUrl}/sitemap.xml`,
   };
 }

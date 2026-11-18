@@ -3,11 +3,11 @@ import type { MetadataRoute } from "next";
 import { projects } from "@/data/workContent";
 import { articles } from "@/data/insightsContent";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "");
+const siteUrl = (
+  process.env.NEXT_PUBLIC_SITE_URL || "https://stackethic.com"
+).replace(/\/+$/, "");
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  if (!siteUrl) return [];
-
   const staticRoutes = [
     "",
     "/services",
