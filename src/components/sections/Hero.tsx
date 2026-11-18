@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { Fragment, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
-
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
@@ -88,7 +87,6 @@ function getChartLayout(tab: Tab) {
       columnHeights.reduce((sum, height) => sum + height, 0) +
       BAR_GAP * (col.segs.length - 1);
 
-    // Preserve the original vertically centered column arrangement.
     const startY = (CHART_HEIGHT - totalHeight) / 2 + col.offset / 2;
 
     let currentY = startY;
@@ -115,18 +113,85 @@ const INITIAL_LAYOUT = getChartLayout("Digital");
 
 function CashflowCard() {
   const cardRef = useRef<HTMLDivElement>(null);
-  const isFirstRun = useRef(true);
+  const previousTab = useRef<Tab>("Digital");
 
   const [tab, setTab] = useState<Tab>("Digital");
-
   const content = CARD_CONTENT[tab];
+
+  /* Initial chart entrance */
 
   useGSAP(
     () => {
-      if (isFirstRun.current) {
-        isFirstRun.current = false;
+      const card = cardRef.current;
+      if (!card) return;
+
+      const chart = card.querySelector("[data-chart]");
+      const segments = card.querySelectorAll<HTMLElement>("[data-seg]");
+
+      const reduce = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+
+      if (reduce) {
+        gsap.set(chart, { autoAlpha: 1, y: 0 });
+        gsap.set(segments, { opacity: 1 });
         return;
       }
+
+      const entrance = gsap.timeline({
+        delay: 0.2,
+        defaults: { ease: "power3.out" },
+      });
+
+      entrance.fromTo(
+        chart,
+        {
+          autoAlpha: 0,
+          y: 9,
+        },
+        {
+          autoAlpha: 1,
+          y: 0,
+          duration: 0.75,
+          ease: "power2.out",
+        },
+      );
+
+      entrance.fromTo(
+        segments,
+        {
+          y: (i: number) => INITIAL_LAYOUT[i].y + 5,
+          scaleY: (i: number) => INITIAL_LAYOUT[i].scale * 0.78,
+          opacity: 0.78,
+        },
+        {
+          y: (i: number) => INITIAL_LAYOUT[i].y,
+          scaleY: (i: number) => INITIAL_LAYOUT[i].scale,
+          opacity: 1,
+          duration: 0.9,
+          stagger: {
+            each: 0.045,
+            from: "start",
+          },
+          ease: "power3.out",
+          overwrite: "auto",
+        },
+        0.08,
+      );
+    },
+    { scope: cardRef },
+  );
+
+  /* Smooth chart morph on tab change */
+
+  useGSAP(
+    () => {
+      if (previousTab.current === tab) {
+        previousTab.current = tab;
+        return;
+      }
+
+      previousTab.current = tab;
 
       const reduce = window.matchMedia(
         "(prefers-reduced-motion: reduce)",
@@ -137,7 +202,7 @@ function CashflowCard() {
       gsap.to("[data-seg]", {
         y: (i: number) => layout[i].y,
         scaleY: (i: number) => layout[i].scale,
-        duration: reduce ? 0 : 0.85,
+        duration: reduce ? 0 : 0.9,
         ease: "power3.inOut",
         stagger: reduce ? 0 : 0.025,
         overwrite: "auto",
@@ -231,9 +296,10 @@ function CashflowCard() {
       {/* Animated visual */}
 
       <div
+        data-chart
         role="img"
         aria-label={`${content.title} visual`}
-        className="mt-5 flex h-[112px] items-center gap-2 overflow-hidden"
+        className="mt-5 flex h-[112px] items-center gap-2 overflow-hidden motion-safe:opacity-0"
       >
         {COLUMNS.map((col, c) => (
           <div
@@ -284,7 +350,6 @@ export default function Hero() {
   useGSAP(
     () => {
       const root = sectionRef.current;
-
       if (!root) return;
 
       const mm = gsap.matchMedia();
@@ -296,73 +361,95 @@ export default function Hero() {
         scrub: true,
       };
 
-      mm.add("(prefers-reduced-motion: no-preference)", () => {
-        /* Entrance animation */
+      /* Full entrance animation */
 
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
         const tl = gsap.timeline({
-          delay: 0.15,
-          defaults: { ease: "power3.out" },
+          delay: 0.12,
+          defaults: {
+            ease: "power3.out",
+          },
         });
+
+        /* Headline */
 
         tl.fromTo(
           ".se-word",
-          { opacity: 0, y: 28, filter: "blur(14px)" },
+          {
+            opacity: 0,
+            y: 32,
+            filter: "blur(12px)",
+          },
           {
             opacity: 1,
             y: 0,
             filter: "blur(0px)",
-            duration: 1,
-            stagger: 0.09,
+            duration: 1.05,
+            stagger: 0.085,
             clearProps: "filter,transform",
           },
-          0.2,
+          0.15,
         )
+
+          /* Subtitle */
+
           .fromTo(
             "[data-hero-sub]",
-            { opacity: 0, y: 20 },
+            {
+              opacity: 0,
+              y: 18,
+            },
             {
               opacity: 1,
               y: 0,
-              duration: 0.9,
+              duration: 0.85,
               clearProps: "transform",
             },
-            0.85,
+            0.8,
           )
+
+          /* CTA */
+
           .fromTo(
             "[data-hero-cta]",
-            { opacity: 0, y: 20 },
+            {
+              opacity: 0,
+              y: 16,
+              scale: 0.97,
+            },
             {
               opacity: 1,
               y: 0,
-              duration: 0.9,
+              scale: 1,
+              duration: 0.8,
+              ease: "power3.out",
               clearProps: "transform",
             },
-            1.05,
+            1.0,
           )
+
+          /* Engineering card */
+
           .fromTo(
             "[data-card]",
-            { opacity: 0, y: 56 },
+            {
+              opacity: 0,
+              y: 42,
+              scale: 0.975,
+            },
             {
               opacity: 1,
               y: 0,
-              duration: 1.2,
+              scale: 1,
+              duration: 1.15,
               ease: "power4.out",
               clearProps: "transform",
             },
-            0.6,
+            0.55,
           )
-          .to("[data-chart]", { opacity: 1, duration: 0.5 }, 1.0)
-          .from(
-            "[data-seg]",
-            {
-              scaleY: 0,
-              transformOrigin: "50% 0%",
-              duration: 0.9,
-              stagger: 0.05,
-              clearProps: "transform",
-            },
-            1.05,
-          )
+
+          /* Scroll indicator */
+
           .fromTo(
             "[data-indicator]",
             {
@@ -376,10 +463,10 @@ export default function Hero() {
               duration: 0.8,
               clearProps: "transform",
             },
-            1.4,
+            1.35,
           );
 
-        /* Scroll parallax */
+        /* Subtle content parallax */
 
         gsap.to("[data-hero-content]", {
           y: -70,
@@ -388,7 +475,7 @@ export default function Hero() {
           scrollTrigger: scrollTriggerConfig,
         });
 
-        /* Scroll indicator */
+        /* Scroll indicator movement */
 
         gsap.to("[data-thumb]", {
           yPercent: 200,
@@ -470,6 +557,7 @@ export default function Hero() {
                     <span className="se-word motion-safe:opacity-0">
                       {word}
                     </span>
+
                     {j < line.length - 1 ? " " : null}
                   </Fragment>
                 ))}
