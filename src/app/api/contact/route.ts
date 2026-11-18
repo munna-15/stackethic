@@ -1,12 +1,22 @@
 import { NextResponse } from "next/server";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { buildEnquiryEmail } from "@/lib/enquiryEmail";
-
-
 
 const isEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
 const str = (value: unknown, max: number) =>
   typeof value === "string" ? value.trim().slice(0, max) : "";
+
+async function hashIdentifier(value: string): Promise<string> {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(value),
+  );
+
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
 
 export async function POST(req: Request) {
   try {
@@ -57,7 +67,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Cloudflare Worker environment variables
+    // Cloudflare environment variables
     const apiKey = process.env.RESEND_API_KEY;
     const to = process.env.CONTACT_TO_EMAIL || "hello@stackethic.com";
     const from =
@@ -77,6 +87,88 @@ export async function POST(req: Request) {
             "The contact form is temporarily unavailable. Please email us directly.",
         },
         { status: 500 },
+      );
+    }
+
+    // Rate limiting: maximum 2 valid submissions per IP in 24 hours
+    const clientIp =
+      req.headers.get("cf-connecting-ip") ||
+      (process.env.NODE_ENV !== "production" ? "local-development" : null);
+
+    if (!clientIp) {
+      console.error("Contact form: Client IP is unavailable.");
+
+      return NextResponse.json(
+        {
+          error:
+            "The contact form is temporarily unavailable. Please try again later.",
+        },
+        { status: 503 },
+      );
+    }
+
+    const { env } = getCloudflareContext();
+
+    const identifier = await hashIdentifier(clientIp);
+    const id = env.CONTACT_RATE_LIMITER.idFromName(identifier);
+    const limiter = env.CONTACT_RATE_LIMITER.get(id);
+
+    const limitResponse = await limiter.fetch(
+      "https://contact-rate-limiter/check",
+      {
+        method: "POST",
+      },
+    );
+
+    if (!limitResponse.ok) {
+      console.error("Contact form: Rate limiter error", limitResponse.status);
+
+      return NextResponse.json(
+        {
+          error:
+            "The contact form is temporarily unavailable. Please try again later.",
+        },
+        { status: 503 },
+      );
+    }
+
+    const limitData: unknown = await limitResponse.json();
+
+    if (
+      typeof limitData !== "object" ||
+      limitData === null ||
+      !("allowed" in limitData) ||
+      typeof limitData.allowed !== "boolean"
+    ) {
+      console.error("Contact form: Invalid rate limiter response.");
+
+      return NextResponse.json(
+        {
+          error:
+            "The contact form is temporarily unavailable. Please try again later.",
+        },
+        { status: 503 },
+      );
+    }
+
+    if (!limitData.allowed) {
+      const retryAfter =
+        "retryAfter" in limitData && typeof limitData.retryAfter === "number"
+          ? Math.max(1, limitData.retryAfter)
+          : 86400;
+
+      return NextResponse.json(
+        {
+          error:
+            "You have reached the daily message limit. Please try again after 24 hours.",
+          retryAfter,
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(retryAfter),
+          },
+        },
       );
     }
 

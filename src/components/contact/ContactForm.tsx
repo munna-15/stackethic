@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, type FormEvent } from "react";
 import { ArrowRight, Check, Loader2 } from "lucide-react";
 import { contactForm as f } from "@/data/contactContent";
@@ -18,8 +19,10 @@ export default function ContactForm() {
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
     const form = e.currentTarget;
     const fd = new FormData(form);
+
     setStatus("sending");
     setError("");
 
@@ -32,15 +35,25 @@ export default function ContactForm() {
           email: fd.get("email"),
           company: fd.get("company"),
           message: fd.get("message"),
-          website: fd.get("website"), // hidden spam trap
+          website: fd.get("website"),
           types,
         }),
       });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok)
-        throw new Error(
-          data.error || "Something went wrong. Please try again.",
-        );
+
+      const data: unknown = await res.json().catch(() => ({}));
+
+      const errorMessage =
+        typeof data === "object" &&
+        data !== null &&
+        "error" in data &&
+        typeof data.error === "string"
+          ? data.error
+          : "Something went wrong. Please try again.";
+
+      if (!res.ok) {
+        throw new Error(errorMessage);
+      }
+
       setStatus("success");
       form.reset();
       setTypes([]);
@@ -50,6 +63,7 @@ export default function ContactForm() {
           ? err.message
           : "Something went wrong. Please try again.",
       );
+
       setStatus("error");
     }
   }
@@ -60,10 +74,13 @@ export default function ContactForm() {
         <span className="grid size-14 place-items-center rounded-full bg-se-lime text-se-olive">
           <Check size={26} aria-hidden />
         </span>
+
         <h2 className="mt-6 text-[clamp(28px,3vw,40px)] leading-[1.05]">
           {f.success.title}
         </h2>
+
         <p className="mt-3 max-w-[26rem] text-[#5c6152]">{f.success.text}</p>
+
         <button
           type="button"
           onClick={() => setStatus("idle")}
@@ -83,6 +100,7 @@ export default function ContactForm() {
       <h2 className="text-[clamp(26px,2.6vw,36px)] leading-[1.05]">
         {f.title}
       </h2>
+
       <p className="mt-2 text-[15px] text-[#5c6152]">{f.text}</p>
 
       <div className="mt-8 grid gap-5 sm:grid-cols-2">
@@ -98,6 +116,7 @@ export default function ContactForm() {
             className={`${field} h-12`}
           />
         </label>
+
         <label className="block">
           <span className="mb-2 block text-sm">Email</span>
           <input
@@ -116,6 +135,7 @@ export default function ContactForm() {
         <span className="mb-2 block text-sm">
           Company <span className="text-[#a3a58f]">(optional)</span>
         </span>
+
         <input
           name="company"
           maxLength={120}
@@ -127,9 +147,11 @@ export default function ContactForm() {
 
       <fieldset className="mt-6">
         <legend className="mb-3 text-sm">What do you need?</legend>
+
         <div className="flex flex-wrap gap-2">
           {f.types.map((t) => {
             const on = types.includes(t);
+
             return (
               <button
                 key={t}
@@ -151,6 +173,7 @@ export default function ContactForm() {
 
       <label className="mt-6 block">
         <span className="mb-2 block text-sm">Tell us about your project</span>
+
         <textarea
           name="message"
           required
@@ -179,7 +202,7 @@ export default function ContactForm() {
         >
           {status === "sending" ? (
             <>
-              <Loader2 size={16} className="animate-spin" aria-hidden />{" "}
+              <Loader2 size={16} className="animate-spin" aria-hidden />
               Sending...
             </>
           ) : (
@@ -193,6 +216,7 @@ export default function ContactForm() {
             </>
           )}
         </button>
+
         <p role="status" aria-live="polite" className="text-sm text-red-700">
           {status === "error" ? error : ""}
         </p>
