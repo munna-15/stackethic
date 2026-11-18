@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Fragment, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
+
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
@@ -18,14 +19,14 @@ const HEADLINE = [
 ];
 
 const SUBTITLE =
-  "AI-first ERP powering next-gen finance & accounting. General ledger, revenue automation, close management.";
+  "Thoughtful websites, custom software, AI automation and cloud solutions for ambitious businesses.";
 
-/* ---------- Cashflow card data ---------- */
+/* ---------- Engineering card data ---------- */
 
 type Tone = "olive" | "lime";
-type Tab = "Weekly" | "Monthly" | "Yearly";
+type Tab = "Digital" | "Software" | "AI";
 
-const TABS: Tab[] = ["Weekly", "Monthly", "Yearly"];
+const TABS: Tab[] = ["Digital", "Software", "AI"];
 
 const COLUMN_DEFS: { offset: number; tones: Tone[] }[] = [
   { offset: 10, tones: ["olive", "lime"] },
@@ -38,21 +39,87 @@ let segmentCounter = 0;
 
 const COLUMNS = COLUMN_DEFS.map((col) => ({
   offset: col.offset,
-  segs: col.tones.map((tone) => ({ tone, i: segmentCounter++ })),
+  segs: col.tones.map((tone) => ({
+    tone,
+    i: segmentCounter++,
+  })),
 }));
 
 const DATA: Record<Tab, number[]> = {
-  Weekly: [22, 4, 5, 24, 12, 8, 16, 16, 8, 30, 24],
-  Monthly: [30, 6, 8, 18, 16, 6, 26, 10, 10, 22, 28],
-  Yearly: [16, 5, 6, 30, 8, 10, 20, 20, 6, 34, 18],
+  Digital: [22, 4, 5, 24, 12, 8, 16, 16, 8, 30, 24],
+  Software: [30, 6, 8, 18, 16, 6, 26, 10, 10, 22, 28],
+  AI: [16, 5, 6, 30, 8, 10, 20, 20, 6, 34, 18],
 };
 
-/* ---------- Cashflow card ---------- */
+const CARD_CONTENT: Record<
+  Tab,
+  { title: string; label: string; caption: string }
+> = {
+  Digital: {
+    title: "Web experiences",
+    label: "01 / Digital",
+    caption: "Thoughtful design. Purposeful development.",
+  },
+  Software: {
+    title: "Custom software",
+    label: "02 / Engineering",
+    caption: "Built around the way your business works.",
+  },
+  AI: {
+    title: "Intelligent automation",
+    label: "03 / AI solutions",
+    caption: "Smarter workflows. More room to grow.",
+  },
+};
+
+/* ---------- Chart layout ---------- */
+
+const CHART_HEIGHT = 112;
+const BAR_HEIGHT = 34;
+const BAR_GAP = 3;
+
+function getChartLayout(tab: Tab) {
+  const heights = DATA[tab];
+
+  return COLUMNS.flatMap((col) => {
+    const columnHeights = col.segs.map((seg) => heights[seg.i]);
+
+    const totalHeight =
+      columnHeights.reduce((sum, height) => sum + height, 0) +
+      BAR_GAP * (col.segs.length - 1);
+
+    // Preserve the original vertically centered column arrangement.
+    const startY = (CHART_HEIGHT - totalHeight) / 2 + col.offset / 2;
+
+    let currentY = startY;
+
+    return col.segs.map((seg) => {
+      const height = heights[seg.i];
+
+      const item = {
+        i: seg.i,
+        y: currentY,
+        scale: height / BAR_HEIGHT,
+      };
+
+      currentY += height + BAR_GAP;
+
+      return item;
+    });
+  });
+}
+
+const INITIAL_LAYOUT = getChartLayout("Digital");
+
+/* ---------- Engineering card ---------- */
 
 function CashflowCard() {
   const cardRef = useRef<HTMLDivElement>(null);
   const isFirstRun = useRef(true);
-  const [tab, setTab] = useState<Tab>("Weekly");
+
+  const [tab, setTab] = useState<Tab>("Digital");
+
+  const content = CARD_CONTENT[tab];
 
   useGSAP(
     () => {
@@ -61,21 +128,25 @@ function CashflowCard() {
         return;
       }
 
-      const heights = DATA[tab];
-
       const reduce = window.matchMedia(
         "(prefers-reduced-motion: reduce)",
       ).matches;
 
+      const layout = getChartLayout(tab);
+
       gsap.to("[data-seg]", {
-        height: (i: number) => heights[i],
-        duration: reduce ? 0 : 0.7,
-        ease: "power3.out",
-        stagger: reduce ? 0 : 0.04,
+        y: (i: number) => layout[i].y,
+        scaleY: (i: number) => layout[i].scale,
+        duration: reduce ? 0 : 0.85,
+        ease: "power3.inOut",
+        stagger: reduce ? 0 : 0.025,
         overwrite: "auto",
       });
     },
-    { scope: cardRef, dependencies: [tab] },
+    {
+      scope: cardRef,
+      dependencies: [tab],
+    },
   );
 
   return (
@@ -83,17 +154,19 @@ function CashflowCard() {
       ref={cardRef}
       data-card
       role="group"
-      aria-label="Cashflow overview"
+      aria-label="StackEthic engineering overview"
       className="w-full rounded-[20px] bg-white p-4 text-se-olive shadow-[0_24px_60px_-20px_rgba(0,0,0,0.45)] motion-safe:opacity-0 lg:w-[clamp(264px,21vw,320px)] xl:p-5"
     >
+      {/* Card heading */}
+
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <p className="text-[17px] font-semibold leading-none tracking-[-0.02em]">
-            Cashflow
+            Engineering
           </p>
 
           <span className="rounded-full bg-se-olive px-2 py-[3px] text-[10px] font-medium leading-none text-se-lime">
-            +23%
+            Studio
           </span>
         </div>
 
@@ -110,9 +183,11 @@ function CashflowCard() {
         </svg>
       </div>
 
+      {/* Tabs */}
+
       <div
         role="tablist"
-        aria-label="Cashflow period"
+        aria-label="Engineering disciplines"
         className="mt-3 flex gap-4 text-[11px] leading-none"
       >
         {TABS.map((t) => (
@@ -133,35 +208,70 @@ function CashflowCard() {
         ))}
       </div>
 
+      {/* Selected service information */}
+
+      <div className="mt-5 flex min-h-[43px] items-end justify-between">
+        <div className="min-w-0">
+          <p
+            className="h-[12px] text-[10px] font-medium uppercase tracking-[0.12em] text-se-olive/40"
+            aria-live="polite"
+          >
+            {content.label}
+          </p>
+
+          <p
+            className="mt-1.5 h-[19px] overflow-hidden text-ellipsis whitespace-nowrap text-[16px] font-semibold tracking-[-0.04em]"
+            aria-live="polite"
+          >
+            {content.title}
+          </p>
+        </div>
+      </div>
+
+      {/* Animated visual */}
+
       <div
-        data-chart
         role="img"
-        aria-label={`${tab} cashflow chart`}
-        className="mt-5 flex h-[112px] items-center gap-2 motion-safe:opacity-0"
+        aria-label={`${content.title} visual`}
+        className="mt-5 flex h-[112px] items-center gap-2 overflow-hidden"
       >
         {COLUMNS.map((col, c) => (
           <div
             key={c}
-            className="flex flex-1 flex-col gap-[3px]"
+            className="relative h-full flex-1"
             style={{ marginTop: col.offset }}
           >
-            {col.segs.map((seg) => (
-              <span
-                key={seg.i}
-                data-seg
-                className={`block w-full rounded-[4px] ${
-                  seg.tone === "olive" ? "bg-se-olive" : "bg-se-lime"
-                }`}
-                style={{ height: DATA.Weekly[seg.i] }}
-              />
-            ))}
+            {col.segs.map((seg) => {
+              const initial = INITIAL_LAYOUT[seg.i];
+
+              return (
+                <span
+                  key={seg.i}
+                  data-seg
+                  className={`absolute left-0 top-0 block h-[34px] w-full rounded-[4px] ${
+                    seg.tone === "olive" ? "bg-se-olive" : "bg-se-lime"
+                  }`}
+                  style={{
+                    transform: `translateY(${initial.y}px) scaleY(${initial.scale})`,
+                    transformOrigin: "50% 0%",
+                  }}
+                />
+              );
+            })}
           </div>
         ))}
       </div>
 
-      <p className="mt-3 text-[10px] leading-none text-se-olive/40">
-        5 updates on each response
-      </p>
+      {/* Description */}
+
+      <div className="mt-3 flex h-[14px] items-center overflow-hidden">
+        <p
+          aria-live="polite"
+          className="truncate text-[10px] leading-none text-se-olive/40"
+        >
+          {content.caption}
+        </p>
+      </div>
     </div>
   );
 }
@@ -174,6 +284,7 @@ export default function Hero() {
   useGSAP(
     () => {
       const root = sectionRef.current;
+
       if (!root) return;
 
       const mm = gsap.matchMedia();
@@ -186,7 +297,7 @@ export default function Hero() {
       };
 
       mm.add("(prefers-reduced-motion: no-preference)", () => {
-        /* ---------- Entrance animation ---------- */
+        /* Entrance animation */
 
         const tl = gsap.timeline({
           delay: 0.15,
@@ -209,13 +320,23 @@ export default function Hero() {
           .fromTo(
             "[data-hero-sub]",
             { opacity: 0, y: 20 },
-            { opacity: 1, y: 0, duration: 0.9, clearProps: "transform" },
+            {
+              opacity: 1,
+              y: 0,
+              duration: 0.9,
+              clearProps: "transform",
+            },
             0.85,
           )
           .fromTo(
             "[data-hero-cta]",
             { opacity: 0, y: 20 },
-            { opacity: 1, y: 0, duration: 0.9, clearProps: "transform" },
+            {
+              opacity: 1,
+              y: 0,
+              duration: 0.9,
+              clearProps: "transform",
+            },
             1.05,
           )
           .fromTo(
@@ -235,7 +356,7 @@ export default function Hero() {
             "[data-seg]",
             {
               scaleY: 0,
-              transformOrigin: "50% 50%",
+              transformOrigin: "50% 0%",
               duration: 0.9,
               stagger: 0.05,
               clearProps: "transform",
@@ -244,14 +365,22 @@ export default function Hero() {
           )
           .fromTo(
             "[data-indicator]",
-            { opacity: 0, scaleY: 0, transformOrigin: "50% 0%" },
-            { opacity: 1, scaleY: 1, duration: 0.8, clearProps: "transform" },
+            {
+              opacity: 0,
+              scaleY: 0,
+              transformOrigin: "50% 0%",
+            },
+            {
+              opacity: 1,
+              scaleY: 1,
+              duration: 0.8,
+              clearProps: "transform",
+            },
             1.4,
           );
 
-        /* ---------- Scroll parallax (content, all screens) ---------- */
+        /* Scroll parallax */
 
-        // Hero content moves upward and fades out.
         gsap.to("[data-hero-content]", {
           y: -70,
           opacity: 0.1,
@@ -259,17 +388,20 @@ export default function Hero() {
           scrollTrigger: scrollTriggerConfig,
         });
 
-        /* ---------- Scroll indicator progress ---------- */
+        /* Scroll indicator */
 
         gsap.to("[data-thumb]", {
           yPercent: 200,
           ease: "none",
-          scrollTrigger: { ...scrollTriggerConfig, scrub: 0.4 },
+          scrollTrigger: {
+            ...scrollTriggerConfig,
+            scrub: 0.4,
+          },
         });
       });
 
-      // Background parallax only on desktop. On phones the photo is not
-      // oversized, so the whole picture stays visible.
+      /* Desktop background parallax */
+
       mm.add(
         "(min-width: 1024px) and (prefers-reduced-motion: no-preference)",
         () => {
@@ -291,9 +423,8 @@ export default function Hero() {
       ref={sectionRef}
       className="relative flex min-h-[560px] flex-col overflow-hidden bg-se-olive text-white sm:min-h-[640px] lg:min-h-[100svh]"
     >
-      {/* Background photo + warm dark overlays.
-          Phones: fills the section exactly (full picture, same ratio as desktop).
-          Desktop: taller than the section so the parallax can move it. */}
+      {/* Background photo */}
+
       <div
         data-hero-bg
         className="absolute inset-x-0 top-0 z-0 h-full lg:-top-[10%] lg:h-[125%]"
@@ -309,16 +440,20 @@ export default function Hero() {
         />
 
         {/* Left-to-right warm shadow */}
+
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,14,8,0.72)_0%,rgba(20,14,8,0.38)_38%,rgba(20,14,8,0.08)_70%,rgba(20,14,8,0.22)_100%)]" />
 
         {/* Bottom shadow */}
+
         <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(14,10,6,0.62)_0%,rgba(14,10,6,0)_45%)]" />
 
-        {/* Top shadow behind navbar */}
+        {/* Top shadow */}
+
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(14,10,6,0.45)_0%,rgba(14,10,6,0)_22%)]" />
       </div>
 
       {/* Hero content */}
+
       <div
         data-hero-content
         className="relative z-10 mx-auto flex w-full max-w-[1760px] flex-1 flex-col justify-end px-4 pb-2.5 pt-14 sm:px-6 sm:pb-6 sm:pt-24 lg:px-11 lg:pb-7 lg:pt-28"
@@ -351,10 +486,10 @@ export default function Hero() {
 
           <div data-hero-cta className="mt-2.5 motion-safe:opacity-0 sm:mt-7">
             <Link
-              href="#signup"
+              href="/contact"
               className="group inline-flex h-7 items-center gap-1 rounded-full bg-se-lime px-3.5 text-[10px] font-medium leading-none text-se-olive transition-colors duration-300 hover:bg-white sm:h-12 sm:gap-2 sm:px-6 sm:text-[15px]"
             >
-              Get started
+              Let&apos;s build
               <ArrowRight
                 strokeWidth={2}
                 aria-hidden="true"
@@ -364,7 +499,8 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* Cashflow card + scroll indicator */}
+        {/* Original right-side card placement and scroll indicator */}
+
         <div className="absolute bottom-2.5 right-3 w-[280px] origin-bottom-right scale-[0.46] min-[480px]:scale-[0.6] sm:bottom-6 sm:right-6 sm:w-[300px] sm:scale-[0.75] lg:bottom-11 lg:right-11 lg:w-auto lg:scale-100">
           <div
             data-indicator
