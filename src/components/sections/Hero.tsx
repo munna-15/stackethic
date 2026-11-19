@@ -2,7 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Fragment, useRef, useState } from "react";
+import {
+  Fragment,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 import { ArrowRight } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -26,6 +31,9 @@ type Tone = "olive" | "lime";
 type Tab = "Digital" | "Software" | "AI";
 
 const TABS: Tab[] = ["Digital", "Software", "AI"];
+
+/** Seconds each tab stays before the card moves on by itself */
+const AUTO_SECONDS = 4.5;
 
 const COLUMN_DEFS: { offset: number; tones: Tone[] }[] = [
   { offset: 10, tones: ["olive", "lime"] },
@@ -113,106 +121,157 @@ const INITIAL_LAYOUT = getChartLayout("Digital");
 
 function CashflowCard() {
   const cardRef = useRef<HTMLDivElement>(null);
-  const previousTab = useRef<Tab>("Digital");
+  const isFirstRun = useRef(true);
+  const tiltReady = useRef(false);
+  const timerRef = useRef<gsap.core.Tween | null>(null);
 
   const [tab, setTab] = useState<Tab>("Digital");
+
   const content = CARD_CONTENT[tab];
 
-  /* Initial chart entrance */
-
+  /* Tab change: sliding pill, bars morph, text swaps, auto-advance timer */
   useGSAP(
     () => {
       const card = cardRef.current;
       if (!card) return;
 
-      const chart = card.querySelector("[data-chart]");
-      const segments = card.querySelectorAll<HTMLElement>("[data-seg]");
+      const first = isFirstRun.current;
+      isFirstRun.current = false;
 
       const reduce = window.matchMedia(
         "(prefers-reduced-motion: reduce)",
       ).matches;
 
-      if (reduce) {
-        gsap.set(chart, { autoAlpha: 1, y: 0 });
-        gsap.set(segments, { opacity: 1 });
-        return;
+      // Sliding pill behind the active tab
+      const btn = card.querySelector<HTMLElement>(`[data-tab="${tab}"]`);
+      const pill = card.querySelector<HTMLElement>("[data-pill]");
+      if (btn && pill) {
+        const to = { x: btn.offsetLeft, width: btn.offsetWidth };
+        if (first || reduce) gsap.set(pill, to);
+        else gsap.to(pill, { ...to, duration: 0.7, ease: "expo.out" });
       }
 
-      const entrance = gsap.timeline({
-        delay: 0.2,
-        defaults: { ease: "power3.out" },
-      });
-
-      entrance.fromTo(
-        chart,
-        {
-          autoAlpha: 0,
-          y: 9,
-        },
-        {
-          autoAlpha: 1,
-          y: 0,
-          duration: 0.75,
-          ease: "power2.out",
-        },
-      );
-
-      entrance.fromTo(
-        segments,
-        {
-          y: (i: number) => INITIAL_LAYOUT[i].y + 5,
-          scaleY: (i: number) => INITIAL_LAYOUT[i].scale * 0.78,
-          opacity: 0.78,
-        },
-        {
-          y: (i: number) => INITIAL_LAYOUT[i].y,
-          scaleY: (i: number) => INITIAL_LAYOUT[i].scale,
-          opacity: 1,
-          duration: 0.9,
-          stagger: {
-            each: 0.045,
-            from: "start",
-          },
-          ease: "power3.out",
+      if (!first) {
+        // Bars morph into the new shape as a left-to-right wave
+        const layout = getChartLayout(tab);
+        gsap.to("[data-seg]", {
+          y: (i: number) => layout[i].y,
+          scaleY: (i: number) => layout[i].scale,
+          duration: reduce ? 0 : 1,
+          ease: "expo.inOut",
+          stagger: reduce ? 0 : 0.035,
           overwrite: "auto",
-        },
-        0.08,
-      );
+        });
+
+        // Text slides and un-blurs in
+        if (!reduce) {
+          gsap.fromTo(
+            "[data-swap]",
+            { opacity: 0, y: 10, filter: "blur(5px)" },
+            {
+              opacity: 1,
+              y: 0,
+              filter: "blur(0px)",
+              duration: 0.7,
+              stagger: 0.07,
+              ease: "power3.out",
+              clearProps: "filter,transform",
+            },
+          );
+        }
+      }
+
+      // Auto-advance: a thin line fills, then the next tab opens
+      timerRef.current?.kill();
+      if (!reduce) {
+        const index = TABS.indexOf(tab);
+        gsap.set("[data-timer]", { scaleX: 0 });
+        timerRef.current = gsap.to("[data-timer]", {
+          scaleX: 1,
+          duration: AUTO_SECONDS,
+          ease: "none",
+          delay: first ? 3.2 : 0.4,
+          onComplete: () => setTab(TABS[(index + 1) % TABS.length]),
+        });
+      }
+    },
+    { scope: cardRef, dependencies: [tab] },
+  );
+
+  /* Idle life: columns breathe softly, 3D tilt switches on after the entrance */
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        gsap.to("[data-col]", {
+          scaleY: 1.045,
+          transformOrigin: "50% 50%",
+          duration: () => 2.2 + Math.random() * 0.8,
+          ease: "sine.inOut",
+          yoyo: true,
+          repeat: -1,
+          stagger: { each: 0.35, from: "start" },
+          delay: 3,
+        });
+        gsap.delayedCall(2.4, () => {
+          tiltReady.current = true;
+        });
+      });
+      return () => mm.revert();
     },
     { scope: cardRef },
   );
 
-  /* Smooth chart morph on tab change */
+  /* Pointer: pause the timer, tilt the card, light follows the cursor */
+  const onEnter = () => timerRef.current?.pause();
 
-  useGSAP(
-    () => {
-      if (previousTab.current === tab) {
-        previousTab.current = tab;
-        return;
-      }
+  const onMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const card = cardRef.current;
+    if (!card || !tiltReady.current || e.pointerType !== "mouse") return;
+    const r = card.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width - 0.5;
+    const py = (e.clientY - r.top) / r.height - 0.5;
+    card.style.setProperty("--mx", `${(px + 0.5) * 100}%`);
+    card.style.setProperty("--my", `${(py + 0.5) * 100}%`);
+    gsap.to(card, {
+      rotationY: px * 9,
+      rotationX: -py * 9,
+      transformPerspective: 900,
+      duration: 0.6,
+      ease: "power3.out",
+      overwrite: "auto",
+    });
+  };
 
-      previousTab.current = tab;
+  const onLeave = () => {
+    timerRef.current?.resume();
+    const card = cardRef.current;
+    if (!card) return;
+    gsap.to(card, {
+      rotationX: 0,
+      rotationY: 0,
+      duration: 0.9,
+      ease: "elastic.out(1, 0.6)",
+      overwrite: "auto",
+    });
+    gsap.to(card.querySelectorAll("[data-col]"), {
+      opacity: 1,
+      duration: 0.4,
+      overwrite: "auto",
+    });
+  };
 
-      const reduce = window.matchMedia(
-        "(prefers-reduced-motion: reduce)",
-      ).matches;
-
-      const layout = getChartLayout(tab);
-
-      gsap.to("[data-seg]", {
-        y: (i: number) => layout[i].y,
-        scaleY: (i: number) => layout[i].scale,
-        duration: reduce ? 0 : 0.9,
-        ease: "power3.inOut",
-        stagger: reduce ? 0 : 0.025,
-        overwrite: "auto",
-      });
-    },
-    {
-      scope: cardRef,
-      dependencies: [tab],
-    },
-  );
+  /* Hover a column: the others dim */
+  const focusColumn = (index: number | null) => {
+    const cols = cardRef.current?.querySelectorAll("[data-col]");
+    if (!cols) return;
+    gsap.to(cols, {
+      opacity: (i: number) => (index === null || i === index ? 1 : 0.35),
+      duration: 0.35,
+      ease: "power2.out",
+      overwrite: "auto",
+    });
+  };
 
   return (
     <div
@@ -220,123 +279,166 @@ function CashflowCard() {
       data-card
       role="group"
       aria-label="StackEthic engineering overview"
-      className="w-full rounded-[20px] bg-white p-4 text-se-olive shadow-[0_24px_60px_-20px_rgba(0,0,0,0.45)] motion-safe:opacity-0 lg:w-[clamp(264px,21vw,320px)] xl:p-5"
+      onPointerEnter={onEnter}
+      onPointerMove={onMove}
+      onPointerLeave={onLeave}
+      onFocus={onEnter}
+      onBlur={() => timerRef.current?.resume()}
+      className="group/card relative w-full overflow-hidden rounded-[20px] bg-white p-4 text-se-olive shadow-[0_24px_60px_-20px_rgba(0,0,0,0.45)] motion-safe:opacity-0 lg:w-[clamp(264px,21vw,320px)] xl:p-5"
     >
-      {/* Card heading */}
+      {/* Light that follows the cursor */}
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover/card:opacity-100"
+        style={{
+          background:
+            "radial-gradient(240px circle at var(--mx, 50%) var(--my, 0%), rgba(220,245,90,0.35), transparent 65%)",
+        }}
+      />
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <p className="text-[17px] font-semibold leading-none tracking-[-0.02em]">
-            Engineering
-          </p>
+      <div className="relative">
+        {/* Card heading */}
 
-          <span className="rounded-full bg-se-olive px-2 py-[3px] text-[10px] font-medium leading-none text-se-lime">
-            Studio
-          </span>
-        </div>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <p className="text-[17px] font-semibold leading-none tracking-[-0.02em]">
+              Engineering
+            </p>
 
-        <svg
-          viewBox="0 0 10 10"
-          aria-hidden="true"
-          className="h-2.5 w-2.5 text-se-olive/30"
-          fill="currentColor"
-        >
-          <circle cx="2" cy="2" r="1.4" />
-          <circle cx="8" cy="2" r="1.4" />
-          <circle cx="2" cy="8" r="1.4" />
-          <circle cx="8" cy="8" r="1.4" />
-        </svg>
-      </div>
-
-      {/* Tabs */}
-
-      <div
-        role="tablist"
-        aria-label="Engineering disciplines"
-        className="mt-3 flex gap-4 text-[11px] leading-none"
-      >
-        {TABS.map((t) => (
-          <button
-            key={t}
-            type="button"
-            role="tab"
-            aria-selected={tab === t}
-            onClick={() => setTab(t)}
-            className={`transition-colors duration-300 ${
-              tab === t
-                ? "font-semibold text-se-olive"
-                : "text-se-olive/45 hover:text-se-olive/80"
-            }`}
-          >
-            {t}
-          </button>
-        ))}
-      </div>
-
-      {/* Selected service information */}
-
-      <div className="mt-5 flex min-h-[43px] items-end justify-between">
-        <div className="min-w-0">
-          <p
-            className="h-[12px] text-[10px] font-medium uppercase tracking-[0.12em] text-se-olive/40"
-            aria-live="polite"
-          >
-            {content.label}
-          </p>
-
-          <p
-            className="mt-1.5 h-[19px] overflow-hidden text-ellipsis whitespace-nowrap text-[16px] font-semibold tracking-[-0.04em]"
-            aria-live="polite"
-          >
-            {content.title}
-          </p>
-        </div>
-      </div>
-
-      {/* Animated visual */}
-
-      <div
-        data-chart
-        role="img"
-        aria-label={`${content.title} visual`}
-        className="mt-5 flex h-[112px] items-center gap-2 overflow-hidden motion-safe:opacity-0"
-      >
-        {COLUMNS.map((col, c) => (
-          <div
-            key={c}
-            className="relative h-full flex-1"
-            style={{ marginTop: col.offset }}
-          >
-            {col.segs.map((seg) => {
-              const initial = INITIAL_LAYOUT[seg.i];
-
-              return (
-                <span
-                  key={seg.i}
-                  data-seg
-                  className={`absolute left-0 top-0 block h-[34px] w-full rounded-[4px] ${
-                    seg.tone === "olive" ? "bg-se-olive" : "bg-se-lime"
-                  }`}
-                  style={{
-                    transform: `translateY(${initial.y}px) scaleY(${initial.scale})`,
-                    transformOrigin: "50% 0%",
-                  }}
-                />
-              );
-            })}
+            <span className="rounded-full bg-se-olive px-2 py-[3px] text-[10px] font-medium leading-none text-se-lime">
+              Studio
+            </span>
           </div>
-        ))}
-      </div>
 
-      {/* Description */}
+          <svg
+            viewBox="0 0 10 10"
+            aria-hidden="true"
+            className="h-2.5 w-2.5 text-se-olive/30"
+            fill="currentColor"
+          >
+            <circle cx="2" cy="2" r="1.4" />
+            <circle cx="8" cy="2" r="1.4" />
+            <circle cx="2" cy="8" r="1.4" />
+            <circle cx="8" cy="8" r="1.4" />
+          </svg>
+        </div>
 
-      <div className="mt-3 flex h-[14px] items-center overflow-hidden">
-        <p
-          aria-live="polite"
-          className="truncate text-[10px] leading-none text-se-olive/40"
+        {/* Tabs with a sliding pill */}
+
+        <div
+          role="tablist"
+          aria-label="Engineering disciplines"
+          className="relative mt-3 inline-flex gap-0.5 rounded-full bg-se-olive/[0.05] p-0.5 text-[11px] leading-none"
         >
-          {content.caption}
-        </p>
+          <span
+            data-pill
+            aria-hidden="true"
+            className="absolute left-0 top-0.5 h-[calc(100%-4px)] w-0 rounded-full bg-se-lime"
+          />
+          {TABS.map((t) => (
+            <button
+              key={t}
+              data-tab={t}
+              type="button"
+              role="tab"
+              aria-selected={tab === t}
+              onClick={() => setTab(t)}
+              className={`relative z-10 rounded-full px-3 py-1.5 transition-colors duration-300 ${
+                tab === t
+                  ? "font-semibold text-se-olive"
+                  : "text-se-olive/50 hover:text-se-olive/80"
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+
+        {/* Auto-advance timer line */}
+
+        <div
+          aria-hidden="true"
+          className="mt-3 h-px overflow-hidden bg-se-olive/10"
+        >
+          <span
+            data-timer
+            className="block h-full w-full origin-left scale-x-0 bg-se-olive"
+          />
+        </div>
+
+        {/* Selected service information */}
+
+        <div className="mt-4 flex min-h-[43px] items-end justify-between">
+          <div className="min-w-0">
+            <p
+              data-swap
+              className="h-[12px] text-[10px] font-medium uppercase tracking-[0.12em] text-se-olive/40"
+              aria-live="polite"
+            >
+              {content.label}
+            </p>
+
+            <p
+              data-swap
+              className="mt-1.5 h-[19px] overflow-hidden text-ellipsis whitespace-nowrap text-[16px] font-semibold tracking-[-0.04em]"
+              aria-live="polite"
+            >
+              {content.title}
+            </p>
+          </div>
+        </div>
+
+        {/* Animated visual */}
+
+        <div
+          data-chart
+          role="img"
+          aria-label={`${content.title} visual`}
+          onPointerLeave={() => focusColumn(null)}
+          className="mt-4 flex h-[112px] items-center gap-2 overflow-hidden motion-safe:opacity-0"
+        >
+          {COLUMNS.map((col, c) => (
+            <div
+              key={c}
+              data-col
+              onPointerEnter={() => focusColumn(c)}
+              className="relative h-full flex-1"
+              style={{ marginTop: col.offset }}
+            >
+              {col.segs.map((seg) => {
+                const initial = INITIAL_LAYOUT[seg.i];
+
+                return (
+                  <span
+                    key={seg.i}
+                    data-seg
+                    className={`absolute left-0 top-0 block h-[34px] w-full rounded-[4px] ${
+                      seg.tone === "olive"
+                        ? "bg-se-olive"
+                        : "bg-se-lime shadow-[0_0_14px_rgba(220,245,90,0.55)]"
+                    }`}
+                    style={{
+                      transform: `translateY(${initial.y}px) scaleY(${initial.scale})`,
+                      transformOrigin: "50% 0%",
+                    }}
+                  />
+                );
+              })}
+            </div>
+          ))}
+        </div>
+
+        {/* Description */}
+
+        <div className="mt-3 flex h-[14px] items-center overflow-hidden">
+          <p
+            data-swap
+            aria-live="polite"
+            className="truncate text-[10px] leading-none text-se-olive/40"
+          >
+            {content.caption}
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -346,6 +448,7 @@ function CashflowCard() {
 
 export default function Hero() {
   const sectionRef = useRef<HTMLElement>(null);
+  const ctaRef = useRef<HTMLAnchorElement>(null);
 
   useGSAP(
     () => {
@@ -358,115 +461,128 @@ export default function Hero() {
         trigger: root,
         start: "top top",
         end: "bottom top",
-        scrub: true,
+        scrub: 0.8,
       };
 
-      /* Full entrance animation */
-
       mm.add("(prefers-reduced-motion: no-preference)", () => {
+        /* ---------- Entrance ---------- */
+
         const tl = gsap.timeline({
-          delay: 0.12,
-          defaults: {
-            ease: "power3.out",
-          },
+          delay: 0.1,
+          defaults: { ease: "power3.out" },
         });
 
-        /* Headline */
-
-        tl.fromTo(
-          ".se-word",
-          {
-            opacity: 0,
-            y: 32,
-            filter: "blur(12px)",
-          },
-          {
-            opacity: 1,
-            y: 0,
-            filter: "blur(0px)",
-            duration: 1.05,
-            stagger: 0.085,
-            clearProps: "filter,transform",
-          },
-          0.15,
-        )
-
-          /* Subtitle */
-
+        tl
+          // Photo settles in slowly while a dark veil lifts
+          .fromTo(
+            "[data-hero-img]",
+            { scale: 1.14 },
+            { scale: 1, duration: 2.6, ease: "expo.out" },
+            0,
+          )
+          .fromTo(
+            "[data-hero-veil]",
+            { opacity: 0.6 },
+            { opacity: 0, duration: 1.6, ease: "power2.out" },
+            0,
+          )
+          // Headline: word by word, blur to sharp
+          .fromTo(
+            ".se-word",
+            { opacity: 0, y: 44, filter: "blur(16px)" },
+            {
+              opacity: 1,
+              y: 0,
+              filter: "blur(0px)",
+              duration: 1.3,
+              stagger: 0.075,
+              ease: "expo.out",
+              clearProps: "filter,transform",
+            },
+            0.25,
+          )
           .fromTo(
             "[data-hero-sub]",
-            {
-              opacity: 0,
-              y: 18,
-            },
+            { opacity: 0, y: 22, filter: "blur(6px)" },
             {
               opacity: 1,
               y: 0,
-              duration: 0.85,
-              clearProps: "transform",
+              filter: "blur(0px)",
+              duration: 1,
+              clearProps: "filter,transform",
             },
-            0.8,
+            0.85,
           )
-
-          /* CTA */
-
           .fromTo(
             "[data-hero-cta]",
-            {
-              opacity: 0,
-              y: 16,
-              scale: 0.97,
-            },
+            { opacity: 0, y: 22, scale: 0.9 },
             {
               opacity: 1,
               y: 0,
               scale: 1,
-              duration: 0.8,
-              ease: "power3.out",
+              duration: 1,
+              ease: "back.out(1.6)",
               clearProps: "transform",
             },
-            1.0,
+            1.05,
           )
-
-          /* Engineering card */
-
+          // Card rises, then its chart reveals as a wave
           .fromTo(
             "[data-card]",
-            {
-              opacity: 0,
-              y: 42,
-              scale: 0.975,
-            },
+            { opacity: 0, y: 70, scale: 0.94 },
             {
               opacity: 1,
               y: 0,
               scale: 1,
-              duration: 1.15,
-              ease: "power4.out",
+              duration: 1.5,
+              ease: "expo.out",
               clearProps: "transform",
             },
-            0.55,
+            0.6,
           )
-
-          /* Scroll indicator */
-
+          .fromTo(
+            "[data-glow]",
+            { opacity: 0 },
+            { opacity: 0.5, duration: 2, ease: "power2.out" },
+            0.9,
+          )
+          .to("[data-chart]", { opacity: 1, duration: 0.6 }, 1.0)
+          .fromTo(
+            "[data-seg]",
+            {
+              scaleY: 0,
+              y: (i: number) =>
+                INITIAL_LAYOUT[i].y +
+                (INITIAL_LAYOUT[i].scale * BAR_HEIGHT) / 2,
+            },
+            {
+              scaleY: (i: number) => INITIAL_LAYOUT[i].scale,
+              y: (i: number) => INITIAL_LAYOUT[i].y,
+              duration: 1.3,
+              ease: "expo.out",
+              stagger: 0.06,
+            },
+            1.15,
+          )
           .fromTo(
             "[data-indicator]",
-            {
-              opacity: 0,
-              scaleY: 0,
-              transformOrigin: "50% 0%",
-            },
-            {
-              opacity: 1,
-              scaleY: 1,
-              duration: 0.8,
-              clearProps: "transform",
-            },
-            1.35,
+            { opacity: 0, scaleY: 0, transformOrigin: "50% 0%" },
+            { opacity: 1, scaleY: 1, duration: 0.8, clearProps: "transform" },
+            1.5,
           );
 
-        /* Subtle content parallax */
+        // Glow behind the card breathes
+        gsap.to("[data-glow]", {
+          opacity: 0.25,
+          scale: 1.08,
+          duration: 3,
+          ease: "sine.inOut",
+          yoyo: true,
+          repeat: -1,
+          delay: 3,
+        });
+
+        /* ---------- Scroll parallax ---------- */
 
         gsap.to("[data-hero-content]", {
           y: -70,
@@ -475,28 +591,50 @@ export default function Hero() {
           scrollTrigger: scrollTriggerConfig,
         });
 
-        /* Scroll indicator movement */
-
         gsap.to("[data-thumb]", {
           yPercent: 200,
           ease: "none",
-          scrollTrigger: {
-            ...scrollTriggerConfig,
-            scrub: 0.4,
-          },
+          scrollTrigger: { ...scrollTriggerConfig, scrub: 0.4 },
         });
       });
 
-      /* Desktop background parallax */
+      /* Desktop only: photo parallax and a magnetic button */
 
       mm.add(
-        "(min-width: 1024px) and (prefers-reduced-motion: no-preference)",
+        "(min-width: 1024px) and (prefers-reduced-motion: no-preference) and (hover: hover)",
         () => {
           gsap.to("[data-hero-bg]", {
             yPercent: 14,
             ease: "none",
             scrollTrigger: scrollTriggerConfig,
           });
+
+          const cta = ctaRef.current;
+          if (!cta) return;
+
+          const onMove = (e: PointerEvent) => {
+            const r = cta.getBoundingClientRect();
+            gsap.to(cta, {
+              x: (e.clientX - (r.left + r.width / 2)) * 0.3,
+              y: (e.clientY - (r.top + r.height / 2)) * 0.4,
+              duration: 0.4,
+              ease: "power3.out",
+            });
+          };
+          const onLeave = () =>
+            gsap.to(cta, {
+              x: 0,
+              y: 0,
+              duration: 0.9,
+              ease: "elastic.out(1, 0.5)",
+            });
+
+          cta.addEventListener("pointermove", onMove);
+          cta.addEventListener("pointerleave", onLeave);
+          return () => {
+            cta.removeEventListener("pointermove", onMove);
+            cta.removeEventListener("pointerleave", onLeave);
+          };
         },
       );
 
@@ -518,6 +656,7 @@ export default function Hero() {
         aria-hidden="true"
       >
         <Image
+          data-hero-img
           src="/images/stackethic/hero.png"
           alt=""
           fill
@@ -537,6 +676,13 @@ export default function Hero() {
         {/* Top shadow */}
 
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(14,10,6,0.45)_0%,rgba(14,10,6,0)_22%)]" />
+
+        {/* Dark veil that lifts on load (only with motion enabled) */}
+
+        <div
+          data-hero-veil
+          className="absolute inset-0 bg-[#0e0a06] opacity-0 motion-safe:opacity-60"
+        />
       </div>
 
       {/* Hero content */}
@@ -574,6 +720,7 @@ export default function Hero() {
 
           <div data-hero-cta className="mt-2.5 motion-safe:opacity-0 sm:mt-7">
             <Link
+              ref={ctaRef}
               href="/contact"
               className="group inline-flex h-7 items-center gap-1 rounded-full bg-se-lime px-3.5 text-[10px] font-medium leading-none text-se-olive transition-colors duration-300 hover:bg-white sm:h-12 sm:gap-2 sm:px-6 sm:text-[15px]"
             >
@@ -587,9 +734,15 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* Original right-side card placement and scroll indicator */}
+        {/* Card, glow behind it, and the scroll indicator */}
 
         <div className="absolute bottom-2.5 right-3 w-[280px] origin-bottom-right scale-[0.46] min-[480px]:scale-[0.6] sm:bottom-6 sm:right-6 sm:w-[300px] sm:scale-[0.75] lg:bottom-11 lg:right-11 lg:w-auto lg:scale-100">
+          <div
+            data-glow
+            aria-hidden="true"
+            className="pointer-events-none absolute -inset-6 -z-10 rounded-[36px] bg-se-lime/40 opacity-0 blur-3xl"
+          />
+
           <div
             data-indicator
             aria-hidden="true"

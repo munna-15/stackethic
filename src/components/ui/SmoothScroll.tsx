@@ -17,10 +17,14 @@ export default function SmoothScroll() {
 
   useEffect(() => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const touch = window.matchMedia("(pointer: coarse)");
 
-    if (reduced.matches) return;
+    // Reduced motion: no smooth scroll.
+    // Phones/tablets: native scroll is the smoothest option, so Lenis stays off.
+    if (reduced.matches || touch.matches) return;
 
     const lenis = new Lenis({
+      autoRaf: false, // GSAP's ticker drives Lenis, so there is only one loop
       lerp: 0.1,
       smoothWheel: true,
       anchors: {

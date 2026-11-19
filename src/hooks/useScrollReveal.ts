@@ -6,45 +6,44 @@ import { gsap } from "@/lib/gsap";
 export function useScrollReveal(scope: RefObject<HTMLElement | null>) {
   useEffect(() => {
     const root = scope.current;
-
     if (!root) return;
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       return;
     }
 
-    const context = gsap.context(() => {}, root);
+    const context = gsap.context(() => {});
     const animatedElements = new Set<Element>();
     const revealTasks = new Map<Element, () => void>();
 
+    // Split headings
     const splitElements = root.querySelectorAll<HTMLElement>("[data-split]");
 
     splitElements.forEach((heading) => {
       const words = heading.querySelectorAll<HTMLElement>(".se-word");
-
       if (!words.length) return;
 
       animatedElements.add(heading);
       words.forEach((word) => animatedElements.add(word));
 
-      context.add(() => {
-        gsap.set(words, {
-          opacity: 0.15,
-          y: 14,
-        });
+      gsap.set(words, {
+        opacity: 0.25,
+        y: 6,
       });
 
       revealTasks.set(heading, () => {
         gsap.to(words, {
           opacity: 1,
           y: 0,
-          duration: 0.8,
-          stagger: 0.06,
-          ease: "power3.out",
+          duration: 0.5,
+          stagger: 0.025,
+          ease: "power2.out",
+          overwrite: "auto",
         });
       });
     });
 
+    // Cards
     const cardElements = root.querySelectorAll<HTMLElement>("[data-card]");
 
     cardElements.forEach((card, index) => {
@@ -58,47 +57,44 @@ export function useScrollReveal(scope: RefObject<HTMLElement | null>) {
 
       items.forEach((item) => animatedElements.add(item));
 
-      context.add(() => {
-        gsap.set(card, {
-          y: 40,
-          opacity: 0,
-        });
-
-        if (items.length) {
-          gsap.set(items, {
-            y: 20,
-            opacity: 0,
-          });
-        }
+      gsap.set(card, {
+        y: 16,
+        opacity: 0,
       });
 
-      revealTasks.set(card, () => {
-        const timeline = gsap.timeline();
+      if (items.length) {
+        gsap.set(items, {
+          y: 6,
+          opacity: 0,
+        });
+      }
 
-        timeline.to(card, {
+      revealTasks.set(card, () => {
+        // Simple tween instead of creating a timeline for every card
+        gsap.to(card, {
           y: 0,
           opacity: 1,
-          duration: 0.8,
-          ease: "power3.out",
-          delay: (index % 3) * 0.12,
+          duration: 0.48,
+          delay: index * 0.04,
+          ease: "power2.out",
+          overwrite: "auto",
         });
 
         if (items.length) {
-          timeline.to(
-            items,
-            {
-              y: 0,
-              opacity: 1,
-              duration: 0.7,
-              stagger: 0.15,
-              ease: "power3.out",
-            },
-            "-=0.35",
-          );
+          gsap.to(items, {
+            y: 0,
+            opacity: 1,
+            duration: 0.38,
+            stagger: 0.035,
+            delay: index * 0.04 + 0.08,
+            ease: "power2.out",
+            overwrite: "auto",
+          });
         }
       });
     });
 
+    // Fade elements
     const fadeElements = root.querySelectorAll<HTMLElement>("[data-fade]");
 
     fadeElements.forEach((element) => {
@@ -106,30 +102,29 @@ export function useScrollReveal(scope: RefObject<HTMLElement | null>) {
 
       animatedElements.add(element);
 
-      context.add(() => {
-        gsap.set(element, {
-          y: 20,
-          opacity: 0,
-        });
+      gsap.set(element, {
+        y: 6,
+        opacity: 0,
       });
 
       revealTasks.set(element, () => {
         gsap.to(element, {
           y: 0,
           opacity: 1,
-          duration: 0.7,
-          ease: "power3.out",
+          duration: 0.4,
+          ease: "power2.out",
+          overwrite: "auto",
         });
       });
     });
 
+    // Observe only reveal targets
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (!entry.isIntersecting) return;
 
           const reveal = revealTasks.get(entry.target);
-
           if (!reveal) return;
 
           context.add(reveal);
@@ -137,8 +132,8 @@ export function useScrollReveal(scope: RefObject<HTMLElement | null>) {
         });
       },
       {
-        threshold: 0.1,
-        rootMargin: "0px 0px -8% 0px",
+        threshold: 0.01,
+        rootMargin: "0px 0px -2% 0px",
       },
     );
 
