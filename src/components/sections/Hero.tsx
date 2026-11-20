@@ -32,7 +32,6 @@ type Tab = "Digital" | "Software" | "AI";
 
 const TABS: Tab[] = ["Digital", "Software", "AI"];
 
-/** Seconds each tab stays before the card moves on by itself */
 const AUTO_SECONDS = 4.5;
 
 const COLUMN_DEFS: { offset: number; tones: Tone[] }[] = [
@@ -145,8 +144,10 @@ function CashflowCard() {
       // Sliding pill behind the active tab
       const btn = card.querySelector<HTMLElement>(`[data-tab="${tab}"]`);
       const pill = card.querySelector<HTMLElement>("[data-pill]");
+
       if (btn && pill) {
         const to = { x: btn.offsetLeft, width: btn.offsetWidth };
+
         if (first || reduce) gsap.set(pill, to);
         else gsap.to(pill, { ...to, duration: 0.7, ease: "expo.out" });
       }
@@ -154,6 +155,7 @@ function CashflowCard() {
       if (!first) {
         // Bars morph into the new shape as a left-to-right wave
         const layout = getChartLayout(tab);
+
         gsap.to("[data-seg]", {
           y: (i: number) => layout[i].y,
           scaleY: (i: number) => layout[i].scale,
@@ -181,11 +183,14 @@ function CashflowCard() {
         }
       }
 
-      // Auto-advance: a thin line fills, then the next tab opens
+      // Auto-advance timer
       timerRef.current?.kill();
+
       if (!reduce) {
         const index = TABS.indexOf(tab);
+
         gsap.set("[data-timer]", { scaleX: 0 });
+
         timerRef.current = gsap.to("[data-timer]", {
           scaleX: 1,
           duration: AUTO_SECONDS,
@@ -198,10 +203,11 @@ function CashflowCard() {
     { scope: cardRef, dependencies: [tab] },
   );
 
-  /* Idle life: columns breathe softly, 3D tilt switches on after the entrance */
+  /* Idle life: columns breathe softly, 3D tilt switches on after entrance */
   useGSAP(
     () => {
       const mm = gsap.matchMedia();
+
       mm.add("(prefers-reduced-motion: no-preference)", () => {
         gsap.to("[data-col]", {
           scaleY: 1.045,
@@ -213,26 +219,32 @@ function CashflowCard() {
           stagger: { each: 0.35, from: "start" },
           delay: 3,
         });
+
         gsap.delayedCall(2.4, () => {
           tiltReady.current = true;
         });
       });
+
       return () => mm.revert();
     },
     { scope: cardRef },
   );
 
-  /* Pointer: pause the timer, tilt the card, light follows the cursor */
+  /* Pointer: pause timer, tilt card, light follows cursor */
   const onEnter = () => timerRef.current?.pause();
 
   const onMove = (e: ReactPointerEvent<HTMLDivElement>) => {
     const card = cardRef.current;
+
     if (!card || !tiltReady.current || e.pointerType !== "mouse") return;
+
     const r = card.getBoundingClientRect();
     const px = (e.clientX - r.left) / r.width - 0.5;
     const py = (e.clientY - r.top) / r.height - 0.5;
+
     card.style.setProperty("--mx", `${(px + 0.5) * 100}%`);
     card.style.setProperty("--my", `${(py + 0.5) * 100}%`);
+
     gsap.to(card, {
       rotationY: px * 9,
       rotationX: -py * 9,
@@ -245,8 +257,10 @@ function CashflowCard() {
 
   const onLeave = () => {
     timerRef.current?.resume();
+
     const card = cardRef.current;
     if (!card) return;
+
     gsap.to(card, {
       rotationX: 0,
       rotationY: 0,
@@ -254,6 +268,7 @@ function CashflowCard() {
       ease: "elastic.out(1, 0.6)",
       overwrite: "auto",
     });
+
     gsap.to(card.querySelectorAll("[data-col]"), {
       opacity: 1,
       duration: 0.4,
@@ -261,10 +276,11 @@ function CashflowCard() {
     });
   };
 
-  /* Hover a column: the others dim */
+  /* Hover a column: others dim */
   const focusColumn = (index: number | null) => {
     const cols = cardRef.current?.querySelectorAll("[data-col]");
     if (!cols) return;
+
     gsap.to(cols, {
       opacity: (i: number) => (index === null || i === index ? 1 : 0.35),
       duration: 0.35,
@@ -286,7 +302,7 @@ function CashflowCard() {
       onBlur={() => timerRef.current?.resume()}
       className="group/card relative w-full overflow-hidden rounded-[20px] bg-white p-4 text-se-olive shadow-[0_24px_60px_-20px_rgba(0,0,0,0.45)] motion-safe:opacity-0 lg:w-[clamp(264px,21vw,320px)] xl:p-5"
     >
-      {/* Light that follows the cursor */}
+      {/* Cursor light */}
       <span
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover/card:opacity-100"
@@ -298,7 +314,6 @@ function CashflowCard() {
 
       <div className="relative">
         {/* Card heading */}
-
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <p className="text-[17px] font-semibold leading-none tracking-[-0.02em]">
@@ -323,8 +338,7 @@ function CashflowCard() {
           </svg>
         </div>
 
-        {/* Tabs with a sliding pill */}
-
+        {/* Tabs */}
         <div
           role="tablist"
           aria-label="Engineering disciplines"
@@ -335,6 +349,7 @@ function CashflowCard() {
             aria-hidden="true"
             className="absolute left-0 top-0.5 h-[calc(100%-4px)] w-0 rounded-full bg-se-lime"
           />
+
           {TABS.map((t) => (
             <button
               key={t}
@@ -354,8 +369,7 @@ function CashflowCard() {
           ))}
         </div>
 
-        {/* Auto-advance timer line */}
-
+        {/* Auto-advance timer */}
         <div
           aria-hidden="true"
           className="mt-3 h-px overflow-hidden bg-se-olive/10"
@@ -366,8 +380,7 @@ function CashflowCard() {
           />
         </div>
 
-        {/* Selected service information */}
-
+        {/* Selected service */}
         <div className="mt-4 flex min-h-[43px] items-end justify-between">
           <div className="min-w-0">
             <p
@@ -388,8 +401,7 @@ function CashflowCard() {
           </div>
         </div>
 
-        {/* Animated visual */}
-
+        {/* Animated chart */}
         <div
           data-chart
           role="img"
@@ -429,7 +441,6 @@ function CashflowCard() {
         </div>
 
         {/* Description */}
-
         <div className="mt-3 flex h-[14px] items-center overflow-hidden">
           <p
             data-swap
@@ -473,10 +484,10 @@ export default function Hero() {
         });
 
         tl
-          // Photo settles in slowly while a dark veil lifts
+          // Background image subtle zoom-in
           .fromTo(
             "[data-hero-img]",
-            { scale: 1.14 },
+            { scale: 1.045 },
             { scale: 1, duration: 2.6, ease: "expo.out" },
             0,
           )
@@ -486,7 +497,7 @@ export default function Hero() {
             { opacity: 0, duration: 1.6, ease: "power2.out" },
             0,
           )
-          // Headline: word by word, blur to sharp
+          // Headline animation
           .fromTo(
             ".se-word",
             { opacity: 0, y: 44, filter: "blur(16px)" },
@@ -526,7 +537,7 @@ export default function Hero() {
             },
             1.05,
           )
-          // Card rises, then its chart reveals as a wave
+          // Card entrance
           .fromTo(
             "[data-card]",
             { opacity: 0, y: 70, scale: 0.94 },
@@ -571,7 +582,7 @@ export default function Hero() {
             1.5,
           );
 
-        // Glow behind the card breathes
+        // Card glow breathing
         gsap.to("[data-glow]", {
           opacity: 0.25,
           scale: 1.08,
@@ -598,13 +609,13 @@ export default function Hero() {
         });
       });
 
-      /* Desktop only: photo parallax and a magnetic button */
+      /* Desktop photo parallax + magnetic button */
 
       mm.add(
         "(min-width: 1024px) and (prefers-reduced-motion: no-preference) and (hover: hover)",
         () => {
           gsap.to("[data-hero-bg]", {
-            yPercent: 14,
+            yPercent: 8,
             ease: "none",
             scrollTrigger: scrollTriggerConfig,
           });
@@ -614,6 +625,7 @@ export default function Hero() {
 
           const onMove = (e: PointerEvent) => {
             const r = cta.getBoundingClientRect();
+
             gsap.to(cta, {
               x: (e.clientX - (r.left + r.width / 2)) * 0.3,
               y: (e.clientY - (r.top + r.height / 2)) * 0.4,
@@ -621,6 +633,7 @@ export default function Hero() {
               ease: "power3.out",
             });
           };
+
           const onLeave = () =>
             gsap.to(cta, {
               x: 0,
@@ -631,6 +644,7 @@ export default function Hero() {
 
           cta.addEventListener("pointermove", onMove);
           cta.addEventListener("pointerleave", onLeave);
+
           return () => {
             cta.removeEventListener("pointermove", onMove);
             cta.removeEventListener("pointerleave", onLeave);
@@ -648,36 +662,38 @@ export default function Hero() {
       ref={sectionRef}
       className="relative flex min-h-[560px] flex-col overflow-hidden bg-se-olive text-white sm:min-h-[640px] lg:min-h-[100svh]"
     >
-      {/* Background photo */}
+      {/* Background photo - responsive positioning */}
 
-      <div
-        data-hero-bg
-        className="absolute inset-x-0 top-0 z-0 h-full lg:-top-[10%] lg:h-[125%]"
-        aria-hidden="true"
-      >
+      <div data-hero-bg className="absolute inset-0 z-0" aria-hidden="true">
         <Image
           data-hero-img
-          src="/images/stackethic/hero.png"
+          src="/images/stackethic/hero-02.png"
           alt=""
           fill
           priority
           sizes="100vw"
-          className="object-cover object-[60%_20%]"
+          className="
+            object-cover
+            object-[53%_12%]
+            sm:object-[55%_15%]
+            lg:object-[52%_12%]
+            xl:object-[50%_10%]
+          "
         />
 
-        {/* Left-to-right warm shadow */}
+        {/* Left-to-right shadow for text readability */}
 
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,14,8,0.72)_0%,rgba(20,14,8,0.38)_38%,rgba(20,14,8,0.08)_70%,rgba(20,14,8,0.22)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,14,8,0.78)_0%,rgba(20,14,8,0.52)_34%,rgba(20,14,8,0.18)_65%,rgba(20,14,8,0.12)_100%)]" />
 
         {/* Bottom shadow */}
 
         <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(14,10,6,0.62)_0%,rgba(14,10,6,0)_45%)]" />
 
-        {/* Top shadow */}
+        {/* Top shadow - protects logo/header area */}
 
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(14,10,6,0.45)_0%,rgba(14,10,6,0)_22%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(14,10,6,0.48)_0%,rgba(14,10,6,0.12)_20%,rgba(14,10,6,0)_38%)]" />
 
-        {/* Dark veil that lifts on load (only with motion enabled) */}
+        {/* Dark veil */}
 
         <div
           data-hero-veil
@@ -734,7 +750,7 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* Card, glow behind it, and the scroll indicator */}
+        {/* Card, glow and scroll indicator */}
 
         <div className="absolute bottom-2.5 right-3 w-[280px] origin-bottom-right scale-[0.46] min-[480px]:scale-[0.6] sm:bottom-6 sm:right-6 sm:w-[300px] sm:scale-[0.75] lg:bottom-11 lg:right-11 lg:w-auto lg:scale-100">
           <div
