@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 
 type Props = {
@@ -21,6 +24,8 @@ export default function Photo({
   quality = 75,
   priority = false,
 }: Props) {
+  const [loaded, setLoaded] = useState(false);
+
   return (
     <div
       aria-hidden={!src}
@@ -34,7 +39,10 @@ export default function Photo({
           sizes={sizes}
           quality={quality}
           priority={priority}
-          className="object-cover"
+          onLoad={() => setLoaded(true)}
+          className={`object-cover transition-opacity duration-500 ${
+            loaded ? "opacity-100" : "opacity-0"
+          }`}
         />
       )}
     </div>

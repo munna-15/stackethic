@@ -1,11 +1,14 @@
 "use client";
-import { useRef, useState } from "react";
-import { useGSAP } from "@gsap/react";
-import { gsap, ScrollTrigger } from "@/lib/gsap";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { gsap } from "@/lib/gsap";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { articles, categories } from "@/data/insightsContent";
 import SplitHeading from "@/components/ui/SplitHeading";
 import ArticleCard from "./ArticleCard";
+
+// SSR-e warning na dite
+const useIsoLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 // The first article is shown as "Latest" above, so the grid lists the rest
 const rest = articles.slice(1);
@@ -21,35 +24,47 @@ export default function ArticleGrid() {
   const visible =
     filter === "All" ? rest : rest.filter((a) => a.category === filter);
 
-  // Cards rise in on scroll, and again every time the filter changes
-  useGSAP(
-    () => {
-      const root = ref.current;
-      if (!root) return;
-      const mm = gsap.matchMedia();
-      mm.add("(prefers-reduced-motion: no-preference)", () => {
-        const cards = gsap.utils.toArray<HTMLElement>(
-          root.querySelectorAll("[data-article]"),
-        );
-        gsap.set(cards, { opacity: 0, y: 40 });
-        ScrollTrigger.batch(cards, {
-          start: "top 90%",
-          once: true,
-          onEnter: (batch) =>
-            gsap.to(batch, {
-              opacity: 1,
-              y: 0,
-              duration: 0.8,
-              stagger: 0.1,
-              ease: "power3.out",
-              overwrite: true,
-            }),
+  // Cards rise in when near the viewport, and again when the filter changes
+  useIsoLayoutEffect(() => {
+    const root = ref.current;
+    if (!root) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const cards = Array.from(
+      root.querySelectorAll<HTMLElement>("[data-article]"),
+    );
+    if (!cards.length) return;
+
+    gsap.set(cards, { opacity: 0, y: 24 });
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        const entering = entries.filter((e) => e.isIntersecting);
+        entering.forEach((entry, i) => {
+          const el = entry.target as HTMLElement;
+          io.unobserve(el);
+          gsap.to(el, {
+            opacity: 1,
+            y: 0,
+            duration: 0.5,
+            delay: i * 0.06,
+            ease: "power2.out",
+            clearProps: "transform,opacity",
+          });
         });
-      });
-      return () => mm.revert();
-    },
-    { scope: ref, dependencies: [filter], revertOnUpdate: true },
-  );
+      },
+      // 200px age-i start, tai image load-er layout shift-e bhul hoy na
+      { rootMargin: "0px 0px 200px 0px", threshold: 0 },
+    );
+
+    cards.forEach((c) => io.observe(c));
+
+    return () => {
+      io.disconnect();
+      gsap.killTweensOf(cards);
+      gsap.set(cards, { clearProps: "transform,opacity" });
+    };
+  }, [filter]);
 
   return (
     <section ref={ref} className="bg-white text-[#1c220a]">

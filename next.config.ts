@@ -3,7 +3,6 @@ import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
 const nextConfig: NextConfig = {
   images: {
-    qualities: [75, 90],
     unoptimized: true,
   },
 

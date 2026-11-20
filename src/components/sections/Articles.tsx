@@ -43,7 +43,8 @@ export default function ArticlesSection() {
               <Photo
                 src={article.cover}
                 gradient={article.gradient}
-                className="transition-transform duration-700 ease-se group-hover:scale-105"
+                alt={article.title}
+                className="transition-transform duration-700 ease-out will-change-transform group-hover:scale-105"
               />
 
               <div

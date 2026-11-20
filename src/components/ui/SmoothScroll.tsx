@@ -18,14 +18,11 @@ export default function SmoothScroll() {
   useEffect(() => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     const touch = window.matchMedia("(pointer: coarse)");
-
-    // Reduced motion: no smooth scroll.
-    // Phones/tablets: native scroll is the smoothest option, so Lenis stays off.
     if (reduced.matches || touch.matches) return;
 
     const lenis = new Lenis({
-      autoRaf: false, // GSAP's ticker drives Lenis, so there is only one loop
-      lerp: 0.1,
+      autoRaf: false,
+      lerp: 0.12,
       smoothWheel: true,
       anchors: {
         offset: window.innerWidth <= 768 ? -76 : -100,
@@ -35,15 +32,7 @@ export default function SmoothScroll() {
     lenisRef.current = lenis;
     window.__stackEthicLenis = lenis;
 
-    lenis.on("scroll", ({ scroll, limit }) => {
-      ScrollTrigger.update();
-
-      window.dispatchEvent(
-        new CustomEvent("stackethic:scroll", {
-          detail: { scroll, limit },
-        }),
-      );
-    });
+    lenis.on("scroll", ScrollTrigger.update);
 
     const tick = (time: number) => {
       lenis.raf(time * 1000);
@@ -64,17 +53,24 @@ export default function SmoothScroll() {
     const lenis = lenisRef.current;
 
     if (lenis && !window.location.hash) {
-      lenis.scrollTo(0, {
-        immediate: true,
-        force: true,
-      });
+      lenis.scrollTo(0, { immediate: true, force: true });
     }
 
-    const id = requestAnimationFrame(() => {
-      ScrollTrigger.refresh();
-    });
+    // Layout shesh hole refresh (prothome rAF, tarpor image load-er por abar)
+    let timer: ReturnType<typeof setTimeout>;
+    const refresh = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => ScrollTrigger.refresh(), 150);
+    };
 
-    return () => cancelAnimationFrame(id);
+    const id = requestAnimationFrame(refresh);
+    window.addEventListener("load", refresh);
+
+    return () => {
+      cancelAnimationFrame(id);
+      clearTimeout(timer);
+      window.removeEventListener("load", refresh);
+    };
   }, [pathname]);
 
   return null;

@@ -1,14 +1,19 @@
 "use client";
+
 import { useRef } from "react";
 import Link from "next/link";
+
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import type { Article } from "@/data/insightsContent";
+
 import SplitHeading from "@/components/ui/SplitHeading";
 import ArticleCard from "./ArticleCard";
 
 export default function RelatedArticles({ articles }: { articles: Article[] }) {
   const ref = useRef<HTMLElement>(null);
+
   useScrollReveal(ref);
+
   if (articles.length === 0) return null;
 
   return (
@@ -19,6 +24,7 @@ export default function RelatedArticles({ articles }: { articles: Article[] }) {
             text="Keep reading"
             className="text-[clamp(30px,3.8vw,56px)]"
           />
+
           <Link
             data-fade
             href="/insights"
@@ -27,9 +33,10 @@ export default function RelatedArticles({ articles }: { articles: Article[] }) {
             All insights
           </Link>
         </div>
+
         <div className="grid gap-x-6 gap-y-12 md:grid-cols-2 lg:grid-cols-3">
           {articles.map((a) => (
-            <div key={a.slug} data-fade>
+            <div key={a.slug} data-card>
               <ArticleCard article={a} />
             </div>
           ))}

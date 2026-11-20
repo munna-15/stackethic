@@ -25,8 +25,9 @@ export default function FeaturedArticle() {
               alt={a.title}
               gradient={a.gradient}
               sizes="(min-width:1024px) 55vw, 100vw"
-              quality={85}
-              className="transition-transform duration-700 ease-se group-hover:scale-105"
+              quality={75}
+              priority
+              className="transition-transform duration-700 ease-out will-change-transform group-hover:scale-105"
             />
             <span className="se-glass absolute left-4 top-4 rounded-full border border-white/20 px-3.5 py-1.5 text-xs">
               Latest

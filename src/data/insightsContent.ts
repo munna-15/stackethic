@@ -1,11 +1,11 @@
 // Insights (blog) content.
-// Article images are stored in public/images/insights/.
+// Article images are stored in public/images/insights/optimized/ (WebP).
 
 export const insightsHero = {
   eyebrow: "Insights",
   title: "Ideas on design, engineering and building products.",
   text: "Practical notes from the way we plan, design and build digital products.",
-  image: "/images/insights/hero.jpg",
+  image: "/images/insights/optimized/hero.webp",
   imageAlt: "StackEthic insights",
 };
 
@@ -38,7 +38,7 @@ export const articles: Article[] = [
     category: "Product",
     excerpt:
       "A minimum viable product is about learning fast, not building less. Here is how to decide what goes in and what waits.",
-    cover: "/images/insights/how-to-scope-your-first-mvp.jpg",
+    cover: "/images/insights/optimized/how-to-scope-your-first-mvp.webp",
     gradient: "bg-[linear-gradient(135deg,#4f8a8c,#183436)]",
     body: [
       {
@@ -77,7 +77,7 @@ export const articles: Article[] = [
     category: "Engineering",
     excerpt:
       "Campaigns, launches and seasonal spikes can break a product that works fine on a quiet day. Prepare before the peak arrives.",
-    cover: "/images/insights/scaling-through-traffic-peaks.jpg",
+    cover: "/images/insights/optimized/scaling-through-traffic-peaks.webp",
     gradient: "bg-[linear-gradient(135deg,#a58b5a,#4b3a1f)]",
     body: [
       {
@@ -114,7 +114,7 @@ export const articles: Article[] = [
     category: "Design",
     excerpt:
       "A design system is not a style guide. Used well, it is a shared language that makes products faster to build and easier to keep consistent.",
-    cover: "/images/insights/smart-ways-to-use-design-systems.jpg",
+    cover: "/images/insights/optimized/smart-ways-to-use-design-systems.webp",
     gradient: "bg-[linear-gradient(135deg,#5b7a43,#243417)]",
     body: [
       {
@@ -149,7 +149,7 @@ export const articles: Article[] = [
     category: "Product",
     excerpt:
       "The right choice depends on your users and what your product needs to do. Here are the questions worth asking before you commit.",
-    cover: "/images/insights/web-app-or-mobile-app.jpg",
+    cover: "/images/insights/optimized/web-app-or-mobile-app.webp",
     gradient: "bg-[linear-gradient(135deg,#5b6aa8,#1f2547)]",
     body: [
       {
@@ -180,7 +180,8 @@ export const articles: Article[] = [
     category: "Product",
     excerpt:
       "A fixed quote only works when both sides agree on what is being built. Here is what a clear quote covers.",
-    cover: "/images/insights/what-a-fixed-scope-quote-should-include.jpg",
+    cover:
+      "/images/insights/optimized/what-a-fixed-scope-quote-should-include.webp",
     gradient: "bg-[linear-gradient(135deg,#8a5e8a,#2d1d3a)]",
     body: [
       {
@@ -212,7 +213,7 @@ export const articles: Article[] = [
     category: "Engineering",
     excerpt:
       "Software is never finished. The choices made in the first weeks decide how easy it is to change a year later.",
-    cover: "/images/insights/building-software-that-lasts.jpg",
+    cover: "/images/insights/optimized/building-software-that-lasts.webp",
     gradient: "bg-[linear-gradient(135deg,#7a8a4a,#2b3200)]",
     body: [
       {

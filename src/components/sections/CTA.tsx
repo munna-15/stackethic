@@ -8,19 +8,19 @@ import SplitText from "../ui/SplitText";
 
 const experts = [
   {
-    src: "/images/experts/expert-01.avif",
+    src: "/images/experts/optimized/expert-01.webp",
     alt: "Expert team member 1",
   },
   {
-    src: "/images/experts/expert-02.avif",
+    src: "/images/experts/optimized/expert-02.webp",
     alt: "Expert team member 2",
   },
   {
-    src: "/images/experts/expert-03.avif",
+    src: "/images/experts/optimized/expert-03.webp",
     alt: "Expert team member 3",
   },
   {
-    src: "/images/experts/expert-04.png",
+    src: "/images/experts/optimized/expert-04.webp",
     alt: "Expert team member 4",
   },
 ];
